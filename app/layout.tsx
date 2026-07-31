@@ -3,6 +3,7 @@ import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "SHEIN Outlet Algérie - Mode à Petits Prix | Livraison 58 Wilayas",
@@ -33,7 +34,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Header />
+        <Suspense fallback={null}>
+          <Header />
+        </Suspense>
         <main className="min-h-screen">{children}</main>
         <BottomNav />
         <WhatsAppButton />

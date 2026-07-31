@@ -15,8 +15,8 @@ export default function cloudinaryLoader({ src, width, quality }: CloudinaryLoad
     }
   }
 
-  // If src is a relative path or placeholder, return as-is
-  if (src.startsWith("/") || src.startsWith("data:")) {
+  // If src is a relative path, data URI, or external HTTP URL, return as-is
+  if (src.startsWith("/") || src.startsWith("data:") || src.startsWith("http")) {
     return src;
   }
 

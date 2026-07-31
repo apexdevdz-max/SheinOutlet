@@ -30,7 +30,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Robe élégante en tissu fluide, coupe ajustée avec finitions soignées. Parfaite pour les occasions spéciales et les soirées.",
     price: 1800,
     old_price: 3000,
-    images: ["/images/products/robe-rose-1.jpg", "/images/products/robe-rose-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80"],
     category_id: "5",
     sizes: ["S", "M", "L", "XL"],
     colors: ["Rose", "Noir", "Blanc"],
@@ -46,7 +46,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Lunettes de soleil style aviateur avec verres polarisés et monture dorée légère. Protection UV400.",
     price: 350,
     old_price: 700,
-    images: ["/images/products/lunettes-1.jpg", "/images/products/lunettes-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80"],
     category_id: "17",
     sizes: ["Unique"],
     colors: ["Doré", "Argenté", "Noir"],
@@ -62,7 +62,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Sac à main élégant avec chaîne dorée, cuir synthétique premium. Compartiment principal spacieux avec poche intérieure zippée.",
     price: 1400,
     old_price: 2000,
-    images: ["/images/products/sac-chaine-1.jpg", "/images/products/sac-chaine-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=800&q=80"],
     category_id: "16",
     sizes: ["Unique"],
     colors: ["Rose", "Noir", "Beige"],
@@ -78,7 +78,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Baskets blanches classiques en cuir synthétique. Semelle confortable et design intemporel qui s'accorde avec tout.",
     price: 1950,
     old_price: 3000,
-    images: ["/images/products/sneakers-1.jpg", "/images/products/sneakers-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80"],
     category_id: "14",
     sizes: ["36", "37", "38", "39", "40", "41", "42"],
     colors: ["Blanc", "Blanc/Rose"],
@@ -94,7 +94,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Crop top tendance en coton doux. Coupe ajustée, idéal pour un look décontracté et stylé.",
     price: 650,
     old_price: 1200,
-    images: ["/images/products/crop-top-1.jpg", "/images/products/crop-top-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80"],
     category_id: "6",
     sizes: ["XS", "S", "M", "L"],
     colors: ["Rose", "Blanc", "Noir"],
@@ -110,7 +110,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Jupe plissée élégante mi-longue, taille élastique confortable. Tissu fluide et léger.",
     price: 1200,
     old_price: 1800,
-    images: ["/images/products/jupe-1.jpg", "/images/products/jupe-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1583496924844-3d1918a55c27?w=800&q=80"],
     category_id: "8",
     sizes: ["S", "M", "L", "XL"],
     colors: ["Rose", "Noir", "Bleu Marine"],
@@ -126,7 +126,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Veste en jean oversize délavée. Look décontracté avec poches avant et boutons métalliques.",
     price: 2500,
     old_price: 4000,
-    images: ["/images/products/veste-jean-1.jpg", "/images/products/veste-jean-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&q=80"],
     category_id: "13",
     sizes: ["M", "L", "XL", "XXL"],
     colors: ["Bleu Clair", "Bleu Foncé"],
@@ -142,7 +142,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Ensemble jogging confortable en coton mélangé. Sweat à capuche et pantalon assorti.",
     price: 2200,
     old_price: 3500,
-    images: ["/images/products/jogging-1.jpg", "/images/products/jogging-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80"],
     category_id: "7",
     sizes: ["S", "M", "L", "XL"],
     colors: ["Rose", "Gris", "Noir"],
@@ -158,7 +158,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "T-shirt en coton 100% avec impression graphique tendance. Coupe regular fit.",
     price: 500,
     old_price: 900,
-    images: ["/images/products/tshirt-h-1.jpg", "/images/products/tshirt-h-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"],
     category_id: "11",
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: ["Blanc", "Noir", "Gris"],
@@ -174,7 +174,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Escarpins à talons hauts (8cm) en similicuir nude. Bout pointu élégant, semelle intérieure rembourrée.",
     price: 1500,
     old_price: 2600,
-    images: ["/images/products/escarpins-1.jpg", "/images/products/escarpins-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80"],
     category_id: "15",
     sizes: ["36", "37", "38", "39", "40"],
     colors: ["Nude", "Noir", "Rouge"],
@@ -190,7 +190,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Bague ajustable en alliage doré avec papillon en cristal. Bijou délicat et féminin.",
     price: 250,
     old_price: 500,
-    images: ["/images/products/bague-1.jpg", "/images/products/bague-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1605100804763-247f67963c9e?w=800&q=80"],
     category_id: "10",
     sizes: ["Unique"],
     colors: ["Doré", "Argenté"],
@@ -206,7 +206,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Pantalon cargo en toile robuste avec poches latérales. Coupe décontractée et confortable.",
     price: 1800,
     old_price: 2800,
-    images: ["/images/products/cargo-1.jpg", "/images/products/cargo-2.jpg"],
+    images: ["https://images.unsplash.com/photo-1555689502-c4b22d76c56f?w=800&q=80"],
     category_id: "12",
     sizes: ["M", "L", "XL", "XXL"],
     colors: ["Kaki", "Noir", "Beige"],
@@ -237,11 +237,73 @@ export function getSubCategories(parentId: string): Category[] {
   return MOCK_CATEGORIES.filter((c) => c.parent_id === parentId);
 }
 
+/** Normalize string: lowercase + remove accents */
+function normalize(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/** Check if `haystack` fuzzy-contains `needle` (allows ~30% character mismatch) */
+function fuzzyMatch(haystack: string, needle: string): boolean {
+  if (haystack.includes(needle)) return true;
+  if (needle.length < 3) return false;
+  // Simple n-gram overlap: check if enough character pairs from needle exist in haystack
+  let matches = 0;
+  for (let i = 0; i < needle.length - 1; i++) {
+    if (haystack.includes(needle.substring(i, i + 2))) matches++;
+  }
+  return matches / (needle.length - 1) >= 0.6;
+}
+
 export function searchMockProducts(query: string): Product[] {
-  const q = query.toLowerCase();
-  return MOCK_PRODUCTS.filter(
-    (p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q)
+  const q = normalize(query.trim());
+  if (q.length < 1) return [];
+
+  const tokens = q.split(/\s+/).filter(Boolean);
+
+  // Score each product
+  const scored = MOCK_PRODUCTS.map((p) => {
+    const name = normalize(p.name);
+    const desc = normalize(p.description);
+    const colors = p.colors.map(normalize).join(" ");
+    const sizes = p.sizes.map(normalize).join(" ");
+    const all = `${name} ${desc} ${colors} ${sizes}`;
+
+    let score = 0;
+    for (const token of tokens) {
+      if (name.includes(token)) score += 10;
+      else if (fuzzyMatch(name, token)) score += 6;
+      else if (desc.includes(token)) score += 3;
+      else if (fuzzyMatch(all, token)) score += 2;
+    }
+    return { product: p, score };
+  });
+
+  return scored
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((s) => s.product);
+}
+
+/**
+ * Resolve a parent-category slug to all its category_ids (parent + sub-categories).
+ * E.g. "femme" → ["1","5","6","7","8","9","10"]
+ */
+export function getCategoryIdsBySlug(slug: string): string[] {
+  const parent = MOCK_CATEGORIES.find(
+    (c) => c.slug === slug && c.parent_id === null
   );
+  if (!parent) return [];
+  const childIds = MOCK_CATEGORIES
+    .filter((c) => c.parent_id === parent.id)
+    .map((c) => c.id);
+  return [parent.id, ...childIds];
+}
+
+/**
+ * Filter products belonging to a category slug (including sub-categories).
+ */
+export function filterProductsByCategory(slug: string): Product[] {
+  const ids = getCategoryIdsBySlug(slug);
+  if (ids.length === 0) return [];
+  return MOCK_PRODUCTS.filter((p) => ids.includes(p.category_id));
 }
