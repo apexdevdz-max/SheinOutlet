@@ -66,7 +66,7 @@ const NAV_TABS = [
 ];
 
 /* ──── Utility: slice to the largest multiple of `cols` ──── */
-function sliceToGrid(items: unknown[], cols: number) {
+function sliceToGrid<T>(items: T[], cols: number): T[] {
   const count = Math.floor(items.length / cols) * cols;
   return count > 0 ? items.slice(0, count) : items;
 }
