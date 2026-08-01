@@ -72,3 +72,20 @@ export interface OrderItem {
   color: string;
   unit_price: number;
 }
+
+export interface Banner {
+  id: string;
+  image: string;
+  alt: string;
+  href: string;
+  order: number;
+}
+
+export interface SiteSettings {
+  whatsappNumber: string;
+  defaultShippingCost: number;
+  siteName: string;
+  siteDescription: string;
+  contactEmail: string;
+  contactPhone: string;
+}

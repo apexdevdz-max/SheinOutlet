@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
@@ -80,6 +80,20 @@ function HomeContent() {
 
   const cartCount = useStore((s) => s.getCartCount());
   const parentCats = getParentCategories();
+  const productsRef = useRef<HTMLDivElement>(null);
+
+  /* ── Auto-scroll to category title on desktop when category is selected ── */
+  useEffect(() => {
+    if (isFiltered && productsRef.current) {
+      const isMobile = window.innerWidth < 768;
+      if (!isMobile) {
+        // Small delay to ensure DOM is settled
+        setTimeout(() => {
+          productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
+  }, [activeCat, activeFilter, isFiltered]);
 
   /* ── Compute product lists based on active filter ── */
   let bestSellers = getMockBestSellers();
@@ -125,7 +139,7 @@ function HomeContent() {
   }
 
   return (
-    <div className="pb-4">
+    <div>
       {/* ─── Mobile Header (transparent overlay) ─── */}
       <MobileHeader />
 
@@ -134,9 +148,10 @@ function HomeContent() {
 
 
 
-      {/* ─── Filtered title (no reset button) ─── */}
+      {/* ─── Filtered title (scroll anchor for desktop) ─── */}
+      <div ref={productsRef} style={{ scrollMarginTop: "140px" }} />
       {isFiltered && (
-        <section className="max-w-7xl mx-auto px-4 pt-5 pb-1">
+        <section className="max-w-7xl mx-auto px-4 pt-4 pb-1">
           <h2 className="text-lg md:text-2xl font-black text-text">
             {activeCat
               ? parentCats.find((c) => c.slug === activeCat)?.name || activeCat.toUpperCase()
@@ -180,23 +195,25 @@ function HomeContent() {
         </section>
       )}
 
-      {/* ─── Reassurance Bar ─── */}
-      <section className="max-w-7xl mx-auto px-4 py-8" id="reassurance">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {[
-            { icon: "🚚", title: "LIVRAISON RAPIDE", desc: "Partout en Algérie" },
-            { icon: "💰", title: "PAIEMENT", desc: "Payez à la réception" },
-            { icon: "↩️", title: "RETOUR FACILE", desc: "Sous 7 jours" },
-            { icon: "💬", title: "SERVICE CLIENT", desc: "7/7 à votre écoute" },
-          ].map((item) => (
-            <div key={item.title} className="reassurance-item bg-white border border-border rounded-xl p-4 hover:border-primary/30 hover:shadow-sm transition-all">
-              <span className="text-2xl mb-2">{item.icon}</span>
-              <h4 className="text-xs font-bold text-text">{item.title}</h4>
-              <p className="text-[10px] text-text-muted">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ─── Reassurance Bar (hidden when filtering by category) ─── */}
+      {!isFiltered && (
+        <section className="max-w-7xl mx-auto px-4 py-8" id="reassurance">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              { icon: "🚚", title: "LIVRAISON RAPIDE", desc: "Partout en Algérie" },
+              { icon: "💰", title: "PAIEMENT", desc: "Payez à la réception" },
+              { icon: "↩️", title: "RETOUR FACILE", desc: "Sous 7 jours" },
+              { icon: "💬", title: "SERVICE CLIENT", desc: "7/7 à votre écoute" },
+            ].map((item) => (
+              <div key={item.title} className="reassurance-item bg-white border border-border rounded-xl p-4 hover:border-primary/30 hover:shadow-sm transition-all">
+                <span className="text-2xl mb-2">{item.icon}</span>
+                <h4 className="text-xs font-bold text-text">{item.title}</h4>
+                <p className="text-[10px] text-text-muted">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ─── Flash Sale Products ─── */}
       {flashGrid.length > 0 && (

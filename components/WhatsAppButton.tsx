@@ -1,6 +1,12 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 export function WhatsAppButton() {
+  const pathname = usePathname();
+  // Hide on admin/login pages
+  if (pathname.startsWith("/admin") || pathname.startsWith("/login")) return null;
+
   const phoneNumber = "213550000000"; // Replace with actual WhatsApp number
   const message = encodeURIComponent("Bonjour ! Je suis intéressé(e) par vos produits sur SHEIN Outlet. Pouvez-vous m'aider ?");
   const url = `https://wa.me/${phoneNumber}?text=${message}`;

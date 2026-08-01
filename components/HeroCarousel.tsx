@@ -33,16 +33,15 @@ export function HeroCarousel() {
 
   return (
     <section className="relative w-full" id="hero-carousel">
-      {/* Mobile: full-width, no padding, no rounded — goes behind the header.
-          Desktop: contained with padding and rounded corners. */}
-      <div className="md:max-w-7xl md:mx-auto md:px-4 md:mt-3">
-        <div ref={emblaRef} className="overflow-hidden md:rounded-2xl">
+      {/* Full-width on both mobile and desktop — carousel goes behind the transparent header */}
+      <div>
+        <div ref={emblaRef} className="overflow-hidden">
           <div className="flex">
             {BANNERS.map((b) => (
               <Link
                 key={b.id}
                 href={b.href}
-                className="flex-[0_0_100%] min-w-0 relative aspect-[1.8/1] md:aspect-[3.8/1] block"
+                className="flex-[0_0_100%] min-w-0 relative aspect-[1.8/1] md:aspect-[2.8/1] block"
               >
                 <Image
                   src={b.image}

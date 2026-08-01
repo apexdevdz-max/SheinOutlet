@@ -33,11 +33,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased flex flex-col min-h-screen">
         <Suspense fallback={null}>
           <Header />
         </Suspense>
-        <main className="min-h-screen">{children}</main>
+        <main className="flex-1">{children}</main>
         <BottomNav />
         <WhatsAppButton />
       </body>

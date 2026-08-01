@@ -8,6 +8,9 @@ export function BottomNav() {
   const pathname = usePathname();
   const cartCount = useStore((s) => s.getCartCount());
 
+  // Hide on admin/login pages
+  if (pathname.startsWith("/admin") || pathname.startsWith("/login")) return null;
+
   const tabs = [
     {
       label: "Accueil",
