@@ -221,15 +221,11 @@ export default function AdminProducts() {
     return cat?.name || "—";
   }
 
-  function handleSave(data: Omit<Product, "id" | "created_at">) {
+  async function handleSave(data: Omit<Product, "id" | "created_at">) {
     if (modal.product) {
-      updateProduct(modal.product.id, data);
+      await updateProduct(modal.product.id, data);
     } else {
-      addProduct({
-        ...data,
-        id: `p${Date.now()}`,
-        created_at: new Date().toISOString(),
-      } as Product);
+      await addProduct(data);
     }
     setModal({ open: false, product: null });
   }

@@ -1,12 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getParentCategories, getSubCategories } from "@/lib/mock-data";
+import type { Category } from "@/lib/types";
 
 export default function CategoriesPage() {
-  const parentCategories = getParentCategories();
-  const [openCat, setOpenCat] = useState<string | null>("1");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [openCat, setOpenCat] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((cats: Category[]) => {
+        if (Array.isArray(cats)) {
+          setCategories(cats);
+          // Open the first parent category by default
+          const firstParent = cats.find((c) => !c.parent_id);
+          if (firstParent) setOpenCat(firstParent.id);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const parentCategories = categories.filter((c) => !c.parent_id);
+  const getSubCategories = (parentId: string) =>
+    categories.filter((c) => c.parent_id === parentId);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">

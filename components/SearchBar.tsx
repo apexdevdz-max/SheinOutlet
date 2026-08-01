@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import { searchMockProducts } from "@/lib/mock-data";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,10 +21,21 @@ export function SearchBar() {
       setIsOpen(false);
       return;
     }
-    const found = searchMockProducts(value);
-    setResults(found.slice(0, 5));
-    setIsOpen(true);
-  }, 250);
+    // Search via API (server-side Supabase)
+    fetch(`/api/products?limit=200`)
+      .then((r) => r.json())
+      .then((products: Product[]) => {
+        if (!Array.isArray(products)) return;
+        const q = value.toLowerCase();
+        const found = products.filter((p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q)
+        );
+        setResults(found.slice(0, 5));
+        setIsOpen(true);
+      })
+      .catch(() => {});
+  }, 300);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +92,7 @@ export function SearchBar() {
               >
                 <div className="w-11 h-11 rounded-lg flex-shrink-0 overflow-hidden relative bg-gray-100">
                   {product.images?.[0] ? (
-                    <Image src={product.images[0]} alt={product.name} fill loader={cloudinaryLoader} unoptimized className="object-cover" sizes="44px" />
+                    <Image src={product.images[0]} alt={product.name} fill loader={cloudinaryLoader} className="object-cover" sizes="44px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-primary text-[10px] font-bold">IMG</div>
                   )}

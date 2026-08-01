@@ -1,17 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import type { Product, Category, Banner, SiteSettings } from "@/lib/types";
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mock-data";
 
-/* ── Default banners matching the HeroCarousel ── */
-const DEFAULT_BANNERS: Banner[] = [
-  { id: "b1", image: "/images/hero/banner1.png", alt: "Nouvelle Collection — Jusqu'à -70%", href: "/categories", order: 1 },
-  { id: "b2", image: "/images/hero/banner2.png", alt: "Édition Limitée — Jusqu'à -50%", href: "/?filter=promo", order: 2 },
-  { id: "b3", image: "/images/hero/banner3.png", alt: "Streetwear Homme — Jusqu'à -60%", href: "/?cat=homme", order: 3 },
-];
-
+/* ── Default settings (used before fetch completes) ── */
 const DEFAULT_SETTINGS: SiteSettings = {
   whatsappNumber: "213550000000",
   defaultShippingCost: 600,
@@ -22,117 +14,253 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 interface AdminState {
-  /* ── Products ── */
+  /* ── Data ── */
   products: Product[];
-  addProduct: (product: Product) => void;
-  updateProduct: (id: string, data: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  toggleStock: (id: string) => void;
-  toggleFlashSale: (id: string) => void;
-  toggleBestSeller: (id: string) => void;
+  categories: Category[];
+  banners: Banner[];
+  settings: SiteSettings;
+
+  /* ── Loading states ── */
+  loading: boolean;
+  error: string | null;
+
+  /* ── Init (fetch from Supabase via API) ── */
+  fetchAll: () => Promise<void>;
+
+  /* ── Products ── */
+  addProduct: (data: Omit<Product, "id" | "created_at">) => Promise<void>;
+  updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  toggleStock: (id: string) => Promise<void>;
+  toggleFlashSale: (id: string) => Promise<void>;
+  toggleBestSeller: (id: string) => Promise<void>;
 
   /* ── Categories ── */
-  categories: Category[];
-  addCategory: (category: Category) => void;
-  updateCategory: (id: string, data: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  addCategory: (data: Omit<Category, "id">) => Promise<void>;
+  updateCategory: (id: string, data: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
 
   /* ── Banners ── */
-  banners: Banner[];
-  addBanner: (banner: Banner) => void;
-  updateBanner: (id: string, data: Partial<Banner>) => void;
-  deleteBanner: (id: string) => void;
-  reorderBanners: (banners: Banner[]) => void;
+  addBanner: (data: Omit<Banner, "id">) => Promise<void>;
+  updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
+  deleteBanner: (id: string) => Promise<void>;
+  reorderBanners: (banners: Banner[]) => Promise<void>;
 
   /* ── Settings ── */
-  settings: SiteSettings;
   updateSettings: (data: Partial<SiteSettings>) => void;
 }
 
-export const useAdminStore = create<AdminState>()(
-  persist(
-    (set, get) => ({
-      /* ══════════════ PRODUCTS ══════════════ */
-      products: [...MOCK_PRODUCTS],
+export const useAdminStore = create<AdminState>()((set, get) => ({
+  /* ══════════════ DATA ══════════════ */
+  products: [],
+  categories: [],
+  banners: [],
+  settings: { ...DEFAULT_SETTINGS },
+  loading: false,
+  error: null,
 
-      addProduct: (product) =>
-        set((s) => ({ products: [product, ...s.products] })),
+  /* ══════════════ FETCH ALL FROM SUPABASE ══════════════ */
+  fetchAll: async () => {
+    if (get().loading) return; // prevent double-fetch
+    set({ loading: true, error: null });
 
-      updateProduct: (id, data) =>
-        set((s) => ({
-          products: s.products.map((p) =>
-            p.id === id ? { ...p, ...data } : p
-          ),
-        })),
+    try {
+      const [productsRes, categoriesRes, bannersRes] = await Promise.all([
+        fetch("/api/admin/products"),
+        fetch("/api/admin/categories"),
+        fetch("/api/admin/banners"),
+      ]);
 
-      deleteProduct: (id) =>
-        set((s) => ({ products: s.products.filter((p) => p.id !== id) })),
+      const [products, categories, banners] = await Promise.all([
+        productsRes.ok ? productsRes.json() : [],
+        categoriesRes.ok ? categoriesRes.json() : [],
+        bannersRes.ok ? bannersRes.json() : [],
+      ]);
 
-      toggleStock: (id) =>
-        set((s) => ({
-          products: s.products.map((p) =>
-            p.id === id ? { ...p, stock: p.stock > 0 ? 0 : 50 } : p
-          ),
-        })),
-
-      toggleFlashSale: (id) =>
-        set((s) => ({
-          products: s.products.map((p) =>
-            p.id === id ? { ...p, is_flash_sale: !p.is_flash_sale } : p
-          ),
-        })),
-
-      toggleBestSeller: (id) =>
-        set((s) => ({
-          products: s.products.map((p) =>
-            p.id === id ? { ...p, is_best_seller: !p.is_best_seller } : p
-          ),
-        })),
-
-      /* ══════════════ CATEGORIES ══════════════ */
-      categories: [...MOCK_CATEGORIES],
-
-      addCategory: (category) =>
-        set((s) => ({ categories: [...s.categories, category] })),
-
-      updateCategory: (id, data) =>
-        set((s) => ({
-          categories: s.categories.map((c) =>
-            c.id === id ? { ...c, ...data } : c
-          ),
-        })),
-
-      deleteCategory: (id) =>
-        set((s) => ({
-          categories: s.categories.filter((c) => c.id !== id),
-        })),
-
-      /* ══════════════ BANNERS ══════════════ */
-      banners: [...DEFAULT_BANNERS],
-
-      addBanner: (banner) =>
-        set((s) => ({ banners: [...s.banners, banner] })),
-
-      updateBanner: (id, data) =>
-        set((s) => ({
-          banners: s.banners.map((b) =>
-            b.id === id ? { ...b, ...data } : b
-          ),
-        })),
-
-      deleteBanner: (id) =>
-        set((s) => ({ banners: s.banners.filter((b) => b.id !== id) })),
-
-      reorderBanners: (banners) => set({ banners }),
-
-      /* ══════════════ SETTINGS ══════════════ */
-      settings: { ...DEFAULT_SETTINGS },
-
-      updateSettings: (data) =>
-        set((s) => ({ settings: { ...s.settings, ...data } })),
-    }),
-    {
-      name: "shein-admin-store",
+      set({
+        products: Array.isArray(products) ? products : [],
+        categories: Array.isArray(categories) ? categories : [],
+        banners: Array.isArray(banners) ? banners : [],
+        loading: false,
+      });
+    } catch (err) {
+      console.error("[AdminStore] fetchAll error:", err);
+      set({ error: "Erreur de chargement des données", loading: false });
     }
-  )
-);
+  },
+
+  /* ══════════════ PRODUCTS ══════════════ */
+  addProduct: async (data) => {
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const product = await res.json();
+      set((s) => ({ products: [product, ...s.products] }));
+    } catch (err) {
+      console.error("[AdminStore] addProduct error:", err);
+      set({ error: "Erreur lors de l'ajout du produit" });
+    }
+  },
+
+  updateProduct: async (id, data) => {
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const updated = await res.json();
+      set((s) => ({
+        products: s.products.map((p) => (p.id === id ? { ...p, ...updated } : p)),
+      }));
+    } catch (err) {
+      console.error("[AdminStore] updateProduct error:", err);
+      set({ error: "Erreur lors de la mise à jour" });
+    }
+  },
+
+  deleteProduct: async (id) => {
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      set((s) => ({ products: s.products.filter((p) => p.id !== id) }));
+    } catch (err) {
+      console.error("[AdminStore] deleteProduct error:", err);
+      set({ error: "Erreur lors de la suppression" });
+    }
+  },
+
+  toggleStock: async (id) => {
+    const product = get().products.find((p) => p.id === id);
+    if (!product) return;
+    const newStock = product.stock > 0 ? 0 : 50;
+    await get().updateProduct(id, { stock: newStock });
+  },
+
+  toggleFlashSale: async (id) => {
+    const product = get().products.find((p) => p.id === id);
+    if (!product) return;
+    await get().updateProduct(id, { is_flash_sale: !product.is_flash_sale });
+  },
+
+  toggleBestSeller: async (id) => {
+    const product = get().products.find((p) => p.id === id);
+    if (!product) return;
+    await get().updateProduct(id, { is_best_seller: !product.is_best_seller });
+  },
+
+  /* ══════════════ CATEGORIES ══════════════ */
+  addCategory: async (data) => {
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const category = await res.json();
+      set((s) => ({ categories: [...s.categories, category] }));
+    } catch (err) {
+      console.error("[AdminStore] addCategory error:", err);
+      set({ error: "Erreur lors de l'ajout de la catégorie" });
+    }
+  },
+
+  updateCategory: async (id, data) => {
+    try {
+      const res = await fetch(`/api/admin/categories/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const updated = await res.json();
+      set((s) => ({
+        categories: s.categories.map((c) => (c.id === id ? { ...c, ...updated } : c)),
+      }));
+    } catch (err) {
+      console.error("[AdminStore] updateCategory error:", err);
+      set({ error: "Erreur lors de la mise à jour" });
+    }
+  },
+
+  deleteCategory: async (id) => {
+    try {
+      const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      set((s) => ({ categories: s.categories.filter((c) => c.id !== id) }));
+    } catch (err) {
+      console.error("[AdminStore] deleteCategory error:", err);
+      set({ error: "Erreur lors de la suppression" });
+    }
+  },
+
+  /* ══════════════ BANNERS ══════════════ */
+  addBanner: async (data) => {
+    try {
+      const res = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const banner = await res.json();
+      set((s) => ({ banners: [...s.banners, banner] }));
+    } catch (err) {
+      console.error("[AdminStore] addBanner error:", err);
+      set({ error: "Erreur lors de l'ajout de la bannière" });
+    }
+  },
+
+  updateBanner: async (id, data) => {
+    try {
+      const res = await fetch(`/api/admin/banners/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const updated = await res.json();
+      set((s) => ({
+        banners: s.banners.map((b) => (b.id === id ? { ...b, ...updated } : b)),
+      }));
+    } catch (err) {
+      console.error("[AdminStore] updateBanner error:", err);
+      set({ error: "Erreur lors de la mise à jour" });
+    }
+  },
+
+  deleteBanner: async (id) => {
+    try {
+      const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      set((s) => ({ banners: s.banners.filter((b) => b.id !== id) }));
+    } catch (err) {
+      console.error("[AdminStore] deleteBanner error:", err);
+      set({ error: "Erreur lors de la suppression" });
+    }
+  },
+
+  reorderBanners: async (banners) => {
+    // Optimistic update
+    set({ banners });
+    try {
+      await fetch("/api/admin/banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(banners),
+      });
+    } catch (err) {
+      console.error("[AdminStore] reorderBanners error:", err);
+    }
+  },
+
+  /* ══════════════ SETTINGS ══════════════ */
+  updateSettings: (data) =>
+    set((s) => ({ settings: { ...s.settings, ...data } })),
+}));

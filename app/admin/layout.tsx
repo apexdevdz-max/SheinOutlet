@@ -1,4 +1,5 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminDataProvider } from "@/components/admin/AdminDataProvider";
 import { Suspense } from "react";
 
 export const metadata = {
@@ -16,7 +17,7 @@ export default function AdminLayout({
         <AdminSidebar />
       </Suspense>
       <main className="ml-64 min-h-screen">
-        {children}
+        <AdminDataProvider>{children}</AdminDataProvider>
       </main>
     </div>
   );

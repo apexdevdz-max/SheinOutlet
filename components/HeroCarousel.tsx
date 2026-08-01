@@ -49,7 +49,6 @@ export function HeroCarousel() {
                   fill
                   priority={b.id === 1}
                   loader={cloudinaryLoader}
-                  unoptimized
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 1280px"
                 />

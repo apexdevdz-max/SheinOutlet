@@ -31,7 +31,7 @@ export default function AdminCategories() {
     setModal({ open: true, category: cat });
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     const slug = form.slug || form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const data = {
@@ -43,9 +43,9 @@ export default function AdminCategories() {
     };
 
     if (modal.category) {
-      updateCategory(modal.category.id, data);
+      await updateCategory(modal.category.id, data);
     } else {
-      addCategory({ ...data, id: `cat${Date.now()}` } as Category);
+      await addCategory(data as Omit<Category, "id">);
     }
     setModal({ open: false, category: null });
   }

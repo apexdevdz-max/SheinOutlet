@@ -2,14 +2,14 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { FilterSidebar, FilterMobileButton, DEFAULT_FILTERS } from "@/components/FilterPanel";
 import type { Filters } from "@/components/FilterPanel";
-import { searchMockProducts, MOCK_PRODUCTS } from "@/lib/mock-data";
+import type { Product } from "@/lib/types";
 
-function applyFilters(products: import("@/lib/types").Product[], filters: Filters) {
+function applyFilters(products: Product[], filters: Filters) {
   return products.filter((p) => {
     if (filters.minPrice !== null && p.price < filters.minPrice) return false;
     if (filters.maxPrice !== null && p.price > filters.maxPrice) return false;
@@ -30,11 +30,26 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products?limit=200")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setAllProducts(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const searchResults = useMemo(() => {
-    if (!query.trim()) return MOCK_PRODUCTS;
-    return searchMockProducts(query);
-  }, [query]);
+    if (!query.trim()) return allProducts;
+    const q = query.toLowerCase();
+    return allProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q)
+    );
+  }, [query, allProducts]);
 
   const filteredResults = useMemo(
     () => applyFilters(searchResults, filters),

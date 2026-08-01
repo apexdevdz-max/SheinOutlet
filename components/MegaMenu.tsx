@@ -1,20 +1,34 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getSubCategories } from "@/lib/mock-data";
+import type { Category } from "@/lib/types";
 
-const categoryData: Record<string, { parent_id: string; promoText: string }> = {
-  femme: { parent_id: "1", promoText: "Nouveautés Femme - Jusqu'à -70%" },
-  homme: { parent_id: "2", promoText: "Collection Homme - Jusqu'à -60%" },
-  chaussures: { parent_id: "3", promoText: "Chaussures Tendance - Dès 990 DA" },
-  "sacs-accessoires": { parent_id: "4", promoText: "Sacs & Accessoires - Dès 250 DA" },
+const promoTexts: Record<string, string> = {
+  femme: "Nouveautés Femme - Jusqu'à -70%",
+  homme: "Collection Homme - Jusqu'à -60%",
+  chaussures: "Chaussures Tendance - Dès 990 DA",
+  "sacs-accessoires": "Sacs & Accessoires - Dès 250 DA",
 };
 
 export function MegaMenu({ categorySlug }: { categorySlug: string }) {
-  const data = categoryData[categorySlug];
-  if (!data) return null;
+  const [subcategories, setSubcategories] = useState<Category[]>([]);
 
-  const subcategories = getSubCategories(data.parent_id);
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((cats: Category[]) => {
+        if (!Array.isArray(cats)) return;
+        // Find parent by slug
+        const parent = cats.find((c) => c.slug === categorySlug && !c.parent_id);
+        if (parent) {
+          setSubcategories(cats.filter((c) => c.parent_id === parent.id));
+        }
+      })
+      .catch(() => {});
+  }, [categorySlug]);
+
+  const promoText = promoTexts[categorySlug] || "";
 
   return (
     <div
@@ -48,7 +62,7 @@ export function MegaMenu({ categorySlug }: { categorySlug: string }) {
         {/* Promo Visual */}
         <div className="w-48 flex-shrink-0">
           <div className="promo-gradient rounded-xl p-4 h-full flex flex-col justify-center items-center text-center">
-            <p className="text-sm font-bold text-primary-dark mb-2">{data.promoText}</p>
+            <p className="text-sm font-bold text-primary-dark mb-2">{promoText}</p>
             <Link
               href={`/categories?cat=${categorySlug}`}
               className="mt-2 inline-block bg-black text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"

@@ -1,28 +1,22 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { FlashSaleCountdown } from "@/components/FlashSaleCountdown";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { CategoryCarousels } from "@/components/CategoryCarousels";
 import { MobileHeader } from "@/components/MobileHeader";
 import { SearchBar } from "@/components/SearchBar";
 import { Footer } from "@/components/Footer";
-import {
-  getMockBestSellers,
-  getMockFlashSaleProducts,
-  getParentCategories,
-  filterProductsByCategory,
-  MOCK_PRODUCTS,
-} from "@/lib/mock-data";
+import type { Product, Category } from "@/lib/types";
 import { useStore } from "@/lib/store/useStore";
 
 /* ──── SVG icons for category bubbles ──── */
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   femme: (
     <svg className="w-8 h-8 md:w-10 md:h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.4}>
-      {/* Dress / mannequin silhouette */}
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 2a3 3 0 00-3 3v1a3 3 0 006 0V5a3 3 0 00-3-3z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 8l-2 13h12L16 8" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 14h6" />
@@ -30,14 +24,12 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   ),
   homme: (
     <svg className="w-8 h-8 md:w-10 md:h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.4}>
-      {/* T-shirt */}
       <path strokeLinecap="round" strokeLinejoin="round" d="M16 3h4l2 4-4 2v12H6V9L2 7l2-4h4" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 3a3 3 0 006 0" />
     </svg>
   ),
   chaussures: (
     <svg className="w-8 h-8 md:w-10 md:h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.4}>
-      {/* Sneaker shoe */}
       <path strokeLinecap="round" strokeLinejoin="round" d="M2 18h20v2H2v-2z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 18v-4c0-1 .5-2 2-3l3-2 2 1 3-1c2-.5 4 0 5 1l1 2v6" />
       <circle cx="8" cy="16" r="0.5" fill="currentColor" />
@@ -46,7 +38,6 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   ),
   "sacs-accessoires": (
     <svg className="w-8 h-8 md:w-10 md:h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.4}>
-      {/* Handbag */}
       <path strokeLinecap="round" strokeLinejoin="round" d="M16 8V6a4 4 0 00-8 0v2" />
       <rect x="3" y="8" width="18" height="13" rx="2" strokeLinecap="round" strokeLinejoin="round" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 12v3" />
@@ -79,15 +70,29 @@ function HomeContent() {
   const isFiltered = !!(activeCat || activeFilter);
 
   const cartCount = useStore((s) => s.getCartCount());
-  const parentCats = getParentCategories();
   const productsRef = useRef<HTMLDivElement>(null);
+
+  // Fetch data from Supabase via API
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/products?limit=200").then((r) => r.json()),
+      fetch("/api/categories").then((r) => r.json()),
+    ]).then(([prods, cats]) => {
+      setAllProducts(Array.isArray(prods) ? prods : []);
+      setCategories(Array.isArray(cats) ? cats : []);
+    }).catch(() => {});
+  }, []);
+
+  const parentCats = categories.filter((c) => !c.parent_id);
 
   /* ── Auto-scroll to category title on desktop when category is selected ── */
   useEffect(() => {
     if (isFiltered && productsRef.current) {
       const isMobile = window.innerWidth < 768;
       if (!isMobile) {
-        // Small delay to ensure DOM is settled
         setTimeout(() => {
           productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
@@ -96,28 +101,34 @@ function HomeContent() {
   }, [activeCat, activeFilter, isFiltered]);
 
   /* ── Compute product lists based on active filter ── */
-  let bestSellers = getMockBestSellers();
-  let flashProducts = getMockFlashSaleProducts();
+  // Helper: get products for a category slug (parent + sub-cats)
+  function getProductsByCategory(slug: string): Product[] {
+    const parent = categories.find((c) => c.slug === slug && !c.parent_id);
+    if (!parent) return [];
+    const childIds = categories.filter((c) => c.parent_id === parent.id).map((c) => c.id);
+    const allCatIds = [parent.id, ...childIds];
+    return allProducts.filter((p) => allCatIds.includes(p.category_id));
+  }
+
+  let bestSellers = allProducts.filter((p) => p.is_best_seller);
+  let flashProducts = allProducts.filter((p) => p.is_flash_sale);
 
   if (activeCat) {
-    const catProducts = filterProductsByCategory(activeCat);
+    const catProducts = getProductsByCategory(activeCat);
     bestSellers = catProducts.filter((p) => p.is_best_seller);
     flashProducts = catProducts.filter((p) => p.is_flash_sale);
   } else if (activeFilter === "promo") {
-    // Show all discounted products (those with old_price)
-    const discounted = MOCK_PRODUCTS.filter((p) => p.old_price && p.old_price > p.price);
+    const discounted = allProducts.filter((p) => p.old_price && p.old_price > p.price);
     bestSellers = discounted.filter((p) => p.is_best_seller);
     flashProducts = discounted.filter((p) => p.is_flash_sale);
   } else if (activeFilter === "new") {
-    // "New" = latest products by created_at
-    const sorted = [...MOCK_PRODUCTS].sort(
+    const sorted = [...allProducts].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     bestSellers = sorted.slice(0, 8);
     flashProducts = sorted.filter((p) => p.is_flash_sale).slice(0, 6);
   }
 
-  // Slice grids to multiples of 6 (desktop) / 2 (mobile, handled by CSS)
   const bestSellersGrid = sliceToGrid(bestSellers, 6).length > 0
     ? sliceToGrid(bestSellers, 2)
     : bestSellers;
@@ -171,75 +182,10 @@ function HomeContent() {
         </section>
       )}
 
-      {/* ─── Best Sellers ─── */}
-      {bestSellersGrid.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8" id="best-sellers">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg md:text-2xl font-black text-text">MEILLEURES VENTES</h2>
-            {!isFiltered && (
-              <Link href="/categories?filter=best" className="text-sm text-text-light hover:text-primary transition-colors flex items-center gap-1">
-                Voir tout
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            )}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {bestSellersGrid.map((product, i) => (
-              <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* ─── Reassurance Bar (hidden when filtering by category) ─── */}
-      {!isFiltered && (
-        <section className="max-w-7xl mx-auto px-4 py-8" id="reassurance">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {[
-              { icon: "🚚", title: "LIVRAISON RAPIDE", desc: "Partout en Algérie" },
-              { icon: "💰", title: "PAIEMENT", desc: "Payez à la réception" },
-              { icon: "↩️", title: "RETOUR FACILE", desc: "Sous 7 jours" },
-              { icon: "💬", title: "SERVICE CLIENT", desc: "7/7 à votre écoute" },
-            ].map((item) => (
-              <div key={item.title} className="reassurance-item bg-white border border-border rounded-xl p-4 hover:border-primary/30 hover:shadow-sm transition-all">
-                <span className="text-2xl mb-2">{item.icon}</span>
-                <h4 className="text-xs font-bold text-text">{item.title}</h4>
-                <p className="text-[10px] text-text-muted">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* ─── Category Carousels (horizontal scrolling rows) ─── */}
+      {!isFiltered && <CategoryCarousels />}
 
-      {/* ─── Flash Sale Products ─── */}
-      {flashGrid.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8" id="flash-products">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg md:text-2xl font-black text-text flex items-center gap-2">
-              ⚡ OFFRES FLASH
-            </h2>
-            {!isFiltered && (
-              <Link href="/categories?filter=flash" className="text-sm text-text-light hover:text-primary transition-colors flex items-center gap-1">
-                Voir tout
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            )}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {flashGrid.map((product, i) => (
-              <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* ─── Empty state ─── */}
       {isFiltered && bestSellersGrid.length === 0 && flashGrid.length === 0 && (

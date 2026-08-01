@@ -1,4 +1,5 @@
-"use client";
+// Cloudinary image loader for Next.js Image component
+// Works both client-side and server-side
 
 interface CloudinaryLoaderProps {
   src: string;

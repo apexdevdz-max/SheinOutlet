@@ -18,7 +18,7 @@ export function Footer() {
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               Votre destination mode en Algérie. Des milliers d&apos;articles tendance à prix
-              outlet, livrés dans les 58 wilayas. Paiement à la livraison.
+              outlet, livrés dans les 69 wilayas. Paiement à la livraison.
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-3 mt-5">
@@ -88,7 +88,7 @@ export function Footer() {
                 <svg className="w-4 h-4 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                 </svg>
-                Livraison dans les 58 Wilayas
+                Livraison dans les 69 Wilayas
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-400">
                 <svg className="w-4 h-4 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

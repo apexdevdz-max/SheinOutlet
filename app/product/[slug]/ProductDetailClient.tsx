@@ -56,7 +56,6 @@ export function ProductDetailClient({ product }: { product: Product }) {
                 fill
                 priority
                 loader={cloudinaryLoader}
-                unoptimized
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
@@ -192,7 +191,7 @@ export function ProductDetailClient({ product }: { product: Product }) {
           <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-border">
             <div className="text-center">
               <span className="text-lg">🚚</span>
-              <p className="text-[10px] text-text-muted mt-1">Livraison 58 Wilayas</p>
+              <p className="text-[10px] text-text-muted mt-1">Livraison 69 Wilayas</p>
             </div>
             <div className="text-center">
               <span className="text-lg">💰</span>

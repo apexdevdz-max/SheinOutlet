@@ -24,13 +24,12 @@ export default function AdminCarousel() {
     setModal({ open: true, banner });
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (modal.banner) {
-      updateBanner(modal.banner.id, form);
+      await updateBanner(modal.banner.id, form);
     } else {
-      addBanner({
-        id: `ban${Date.now()}`,
+      await addBanner({
         image: form.image,
         alt: form.alt,
         href: form.href,
