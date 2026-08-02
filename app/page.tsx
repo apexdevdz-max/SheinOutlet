@@ -67,10 +67,12 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const activeCat = searchParams.get("cat");
   const activeFilter = searchParams.get("filter");
+  const activeSubcat = searchParams.get("subcat");
   const isFiltered = !!(activeCat || activeFilter);
 
   const cartCount = useStore((s) => s.getCartCount());
   const productsRef = useRef<HTMLDivElement>(null);
+  const catCarouselRef = useRef<HTMLDivElement>(null);
 
   // Fetch data from Supabase via API
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -102,19 +104,33 @@ function HomeContent() {
 
   /* ── Compute product lists based on active filter ── */
   // Helper: get products for a category slug (parent + sub-cats)
-  function getProductsByCategory(slug: string): Product[] {
+  function getProductsByCategory(slug: string, subcatSlug?: string | null): Product[] {
     const parent = categories.find((c) => c.slug === slug && !c.parent_id);
     if (!parent) return [];
+
+    // If a subcategory is selected, only show products from that specific subcategory
+    if (subcatSlug) {
+      const subcat = categories.find((c) => c.slug === subcatSlug && c.parent_id === parent.id);
+      if (subcat) {
+        return allProducts.filter((p) => p.category_id === subcat.id);
+      }
+    }
+
+    // Otherwise show all products from parent + all children
     const childIds = categories.filter((c) => c.parent_id === parent.id).map((c) => c.id);
     const allCatIds = [parent.id, ...childIds];
     return allProducts.filter((p) => p.category_id && allCatIds.includes(p.category_id));
   }
 
+  // Get subcategories for the active parent category
+  const activeParent = activeCat ? categories.find((c) => c.slug === activeCat && !c.parent_id) : null;
+  const activeSubcats = activeParent ? categories.filter((c) => c.parent_id === activeParent.id) : [];
+
   let bestSellers = allProducts.filter((p) => p.is_best_seller);
   let flashProducts = allProducts.filter((p) => p.is_flash_sale);
 
   if (activeCat) {
-    const catProducts = getProductsByCategory(activeCat);
+    const catProducts = getProductsByCategory(activeCat, activeSubcat);
     bestSellers = catProducts; // Show ALL products of this category
     flashProducts = catProducts.filter((p) => p.is_flash_sale);
   } else if (activeFilter === "promo") {
@@ -157,21 +173,137 @@ function HomeContent() {
       {/* ─── Hero Carousel (always visible / persistent) ─── */}
       <HeroCarousel />
 
+      {/* ─── Category Cards Carousel ─── */}
+      {!isFiltered && parentCats.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-6 relative">
+          {/* Left arrow */}
+          <button
+            onClick={() => {
+              if (catCarouselRef.current) catCarouselRef.current.scrollBy({ left: -(catCarouselRef.current.offsetWidth * 0.7), behavior: "smooth" });
+            }}
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
+            aria-label="Précédent"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
 
+          {/* Scrollable row */}
+          <div
+            ref={catCarouselRef}
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 pb-2">
 
-      {/* ─── Filtered title (scroll anchor for desktop) ─── */}
+            {parentCats.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/?cat=${cat.slug}`}
+                className="group relative block rounded-2xl overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300"
+              >
+                {/* Background image */}
+                {cat.image_url ? (
+                  <img
+                    src={cat.image_url}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-pink-100 to-pink-50" />
+                )}
+
+                {/* Subtle gradient overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+                {/* Icon circle (top-right) */}
+                <div className="absolute top-3 right-3 w-9 h-9 rounded-full bg-pink-200/70 backdrop-blur-sm flex items-center justify-center">
+                  {CATEGORY_ICONS[cat.slug] ? (
+                    <div className="[&_svg]:!w-4 [&_svg]:!h-4 text-primary">
+                      {CATEGORY_ICONS[cat.slug]}
+                    </div>
+                  ) : (
+                    <span className="text-xs font-bold text-primary">{cat.name.charAt(0)}</span>
+                  )}
+                </div>
+
+                {/* Category name (top-left) */}
+                <div className="absolute top-3 left-3">
+                  <h3 className="text-sm md:text-base font-black text-text drop-shadow-sm leading-tight">
+                    {cat.name.toUpperCase()}
+                  </h3>
+                </div>
+
+                {/* "Voir plus >" button (bottom-left) */}
+                <div className="absolute bottom-3 left-3">
+                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/90 text-white text-[10px] md:text-[11px] font-semibold group-hover:bg-primary transition-colors shadow-sm">
+                    Voir plus
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Right arrow */}
+          <button
+            onClick={() => {
+              if (catCarouselRef.current) catCarouselRef.current.scrollBy({ left: catCarouselRef.current.offsetWidth * 0.7, behavior: "smooth" });
+            }}
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
+            aria-label="Suivant"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </section>
+      )}
+
+      {/* ─── Filtered title + subcategory pills (scroll anchor for desktop) ─── */}
       <div ref={productsRef} style={{ scrollMarginTop: "140px" }} />
       {isFiltered && (
         <section className="max-w-7xl mx-auto px-4 pt-4 pb-1">
-          <h2 className="text-lg md:text-2xl font-black text-text">
-            {activeCat
-              ? parentCats.find((c) => c.slug === activeCat)?.name || activeCat.toUpperCase()
-              : activeFilter === "new"
-                ? "NOUVEAUTÉS"
-                : activeFilter === "promo"
-                  ? "PROMOTIONS"
-                  : ""}
-          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-lg md:text-2xl font-black text-text">
+              {activeCat
+                ? parentCats.find((c) => c.slug === activeCat)?.name || activeCat.toUpperCase()
+                : activeFilter === "new"
+                  ? "NOUVEAUTÉS"
+                  : activeFilter === "promo"
+                    ? "PROMOTIONS"
+                    : ""}
+            </h2>
+
+            {/* Subcategory pill filters */}
+            {activeCat && activeSubcats.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide ml-0 md:ml-4">
+                <Link
+                  href={`/?cat=${activeCat}`}
+                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    !activeSubcat
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-gray-100 text-text-light hover:bg-pink-50 hover:text-primary"
+                  }`}
+                >
+                  Tout
+                </Link>
+                {activeSubcats.map((sub) => (
+                  <Link
+                    key={sub.id}
+                    href={`/?cat=${activeCat}&subcat=${sub.slug}`}
+                    className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      activeSubcat === sub.slug
+                        ? "bg-primary text-white shadow-sm"
+                        : "bg-gray-100 text-text-light hover:bg-pink-50 hover:text-primary"
+                    }`}
+                  >
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       )}
 

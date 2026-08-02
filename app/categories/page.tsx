@@ -6,18 +6,12 @@ import type { Category } from "@/lib/types";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [openCat, setOpenCat] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/categories")
       .then((r) => r.json())
       .then((cats: Category[]) => {
-        if (Array.isArray(cats)) {
-          setCategories(cats);
-          // Open the first parent category by default
-          const firstParent = cats.find((c) => !c.parent_id);
-          if (firstParent) setOpenCat(firstParent.id);
-        }
+        if (Array.isArray(cats)) setCategories(cats);
       })
       .catch(() => {});
   }, []);
@@ -27,9 +21,9 @@ export default function CategoriesPage() {
     categories.filter((c) => c.parent_id === parentId);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center gap-3 mb-6">
+      <div className="md:hidden flex items-center gap-3 mb-5">
         <Link href="/" className="text-text-light">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -41,76 +35,82 @@ export default function CategoriesPage() {
       {/* Desktop Title */}
       <h1 className="hidden md:block text-3xl font-black text-text mb-8">Catégories</h1>
 
-      {/* Promo Banner */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="promo-gradient rounded-xl p-4 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-xs text-text-light">Nouveautés</p>
-            <p className="text-lg font-black text-primary-dark">-70%</p>
-            <p className="text-[10px] text-text-muted">sur vos articles préférés</p>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-xs text-text-light">Nouveautés</p>
-            <p className="text-lg font-black text-primary-dark">-70%</p>
-            <p className="text-[10px] text-text-muted">sur vos articles préférés</p>
-          </div>
-        </div>
+      {/* Quick links */}
+      <div className="flex gap-3 mb-6 overflow-x-auto scrollbar-hide">
+        <Link
+          href="/?filter=new"
+          className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
+        >
+          <p className="text-xs font-bold text-primary-dark">✨ Nouveautés</p>
+          <p className="text-[10px] text-text-muted">Chaque semaine</p>
+        </Link>
+        <Link
+          href="/?filter=promo"
+          className="flex-shrink-0 promo-gradient rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
+        >
+          <p className="text-xs font-bold text-primary-dark">🔥 Promotions</p>
+          <p className="text-[10px] text-text-muted">Jusqu&apos;à -70%</p>
+        </Link>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Rechercher une catégorie..."
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-border rounded-xl text-sm"
-          />
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Accordion Categories */}
-      <div className="space-y-2">
+      {/* Category List with Images */}
+      <div className="space-y-4">
         {parentCategories.map((cat) => {
-          const isOpen = openCat === cat.id;
           const subcats = getSubCategories(cat.id);
 
           return (
-            <div key={cat.id} className="border border-border rounded-xl overflow-hidden bg-white" id={`cat-${cat.slug}`}>
-              <button
-                onClick={() => setOpenCat(isOpen ? null : cat.id)}
-                className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+            <div key={cat.id} className="bg-white rounded-2xl border border-border overflow-hidden" id={`cat-${cat.slug}`}>
+              {/* Parent Category Card */}
+              <Link
+                href={`/?cat=${cat.slug}`}
+                className="flex items-center gap-4 p-3 hover:bg-pink-50/30 transition-colors group"
               >
-                <span className="text-base font-bold text-text">{cat.name}</span>
-                <svg
-                  className={`w-5 h-5 text-text-muted transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                {/* Category Image */}
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-pink-50 flex-shrink-0">
+                  {cat.image_url ? (
+                    <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary/30">{cat.name.charAt(0)}</span>
+                    </div>
+                  )}
+                </div>
+                {/* Category Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm md:text-base font-bold text-text group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </p>
+                  <p className="text-[11px] text-text-muted mt-0.5">
+                    {subcats.length > 0 ? `${subcats.length} sous-catégories` : "Voir les produits"}
+                  </p>
+                </div>
+                {/* Arrow */}
+                <svg className="w-5 h-5 text-text-muted group-hover:text-primary transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Link>
 
-              {isOpen && subcats.length > 0 && (
-                <div className="px-5 pb-5 animate-fade-in">
-                  {/* Subcategory label */}
-                  <p className="text-xs text-text-muted mb-3 font-medium">Vêtements</p>
-                  <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+              {/* Subcategories */}
+              {subcats.length > 0 && (
+                <div className="border-t border-border/50 px-3 py-2 bg-gray-50/30">
+                  <div className="flex flex-wrap gap-2">
                     {subcats.map((sub) => (
                       <Link
                         key={sub.id}
-                        href={`/categories?cat=${sub.slug}`}
-                        className="group flex flex-col items-center gap-2"
+                        href={`/?cat=${cat.slug}&subcat=${sub.slug}`}
+                        className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-border/50 hover:border-primary/30 hover:bg-pink-50/50 transition-all group"
                       >
-                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-primary-light flex items-center justify-center group-hover:bg-primary/15 transition-colors shadow-sm">
-                          <span className="text-primary text-xs font-bold">{sub.name.slice(0, 3)}</span>
+                        {/* Subcategory thumbnail */}
+                        <div className="w-8 h-8 rounded-md overflow-hidden bg-pink-50 flex-shrink-0">
+                          {sub.image_url ? (
+                            <img src={sub.image_url} alt={sub.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-[10px] font-bold text-primary/40">{sub.name.slice(0, 2)}</span>
+                            </div>
+                          )}
                         </div>
-                        <span className="text-[10px] md:text-xs text-text-light text-center leading-tight group-hover:text-primary transition-colors">
+                        <span className="text-xs text-text-light font-medium group-hover:text-primary transition-colors">
                           {sub.name}
                         </span>
                       </Link>
@@ -121,16 +121,6 @@ export default function CategoriesPage() {
             </div>
           );
         })}
-      </div>
-
-      {/* Nouveautés link */}
-      <div className="mt-6 border border-border rounded-xl overflow-hidden bg-white">
-        <Link href="/categories?filter=new" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors">
-          <span className="text-base font-bold text-text">Nouveautés</span>
-          <svg className="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
       </div>
     </div>
   );

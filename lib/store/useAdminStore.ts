@@ -214,8 +214,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error(await res.text());
-      const category = await res.json();
-      set((s) => ({ categories: [...s.categories, category] }));
+      const result = await res.json();
+      // API returns { category, subcategories } for batch creation
+      const newItems = [result.category, ...(result.subcategories || [])].filter(Boolean);
+      set((s) => ({ categories: [...s.categories, ...newItems] }));
     } catch (err) {
       console.error("[AdminStore] addCategory error:", err);
       set({ error: "Erreur lors de l'ajout de la catégorie" });

@@ -23,7 +23,7 @@ const PRODUCT_LIST_COLUMNS =
 const PRODUCT_DETAIL_COLUMNS =
   "id, name, slug, description, price, old_price, images, category_id, sizes, colors, is_flash_sale, is_best_seller, stock, created_at";
 const CATEGORY_COLUMNS =
-  "id, name, slug, image_url, parent_id, display_order";
+  "id, name, slug, image_url, parent_id, show_in_header, display_order";
 
 // ──────────────────────────────────────────────
 // CATEGORIES

@@ -4,6 +4,7 @@ export interface Category {
   slug: string;
   image_url: string;
   parent_id: string | null;
+  show_in_header: boolean;
   display_order: number;
 }
 

@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
+import { useState, useEffect } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
   const cartCount = useStore((s) => s.getCartCount());
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Hide on admin/login pages
   if (pathname.startsWith("/admin") || pathname.startsWith("/login")) return null;
@@ -67,7 +70,7 @@ export function BottomNav() {
             >
               {tab.icon(isActive)}
               <span className="text-[10px] font-medium">{tab.label}</span>
-              {tab.badge && tab.badge > 0 ? (
+              {mounted && tab.badge && tab.badge > 0 ? (
                 <span className="absolute top-0 right-1 bg-primary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {tab.badge > 9 ? "9+" : tab.badge}
                 </span>

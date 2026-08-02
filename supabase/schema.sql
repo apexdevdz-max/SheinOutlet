@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS categories (
   slug TEXT NOT NULL UNIQUE,
   image_url TEXT DEFAULT '',
   parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+  show_in_header BOOLEAN DEFAULT TRUE,
   display_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()
 );

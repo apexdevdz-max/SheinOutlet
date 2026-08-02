@@ -6,6 +6,7 @@ import { useStore } from "@/lib/store/useStore";
 import { SearchBar } from "./SearchBar";
 import { MegaMenu } from "./MegaMenu";
 import { useState, useEffect } from "react";
+import type { Category } from "@/lib/types";
 
 export function Header() {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export function Header() {
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
   const searchParams = useSearchParams();
+  const [headerCategories, setHeaderCategories] = useState<Category[]>([]);
 
   const isHomepage = pathname === "/";
   // On non-homepage routes, header is always "scrolled" (white bg)
@@ -32,6 +34,18 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Fetch categories from API for dynamic nav
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((cats: Category[]) => {
+        if (Array.isArray(cats)) {
+          setHeaderCategories(cats.filter((c) => !c.parent_id && c.show_in_header));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   function isActive(link: { href: string; slug: string | null; label: string }) {
     if (link.href === "/") return !activeCat && !activeFilter;
     if (link.slug && activeCat === link.slug) return true;
@@ -40,13 +54,15 @@ export function Header() {
     return false;
   }
 
-  const navLinks = [
+  // Build dynamic nav links: static items + dynamic categories
+  const navLinks: { label: string; href: string; slug: string | null }[] = [
     { label: "ACCUEIL", href: "/", slug: null },
     { label: "NOUVEAUTÉS", href: "/?filter=new", slug: null },
-    { label: "FEMME", href: "/?cat=femme", slug: "femme" },
-    { label: "HOMME", href: "/?cat=homme", slug: "homme" },
-    { label: "CHAUSSURES", href: "/?cat=chaussures", slug: "chaussures" },
-    { label: "SACS & ACCESSOIRES", href: "/?cat=sacs-accessoires", slug: "sacs-accessoires" },
+    ...headerCategories.map((c) => ({
+      label: c.name.toUpperCase(),
+      href: `/?cat=${c.slug}`,
+      slug: c.slug,
+    })),
     { label: "PROMOTIONS", href: "/?filter=promo", slug: null },
   ];
 

@@ -1,8 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
 import type { Category } from "@/lib/types";
+
+/* ── Quick sub-category inline modal ── */
+function QuickAddSub({ parentId, onClose }: { parentId: string; onClose: () => void }) {
+  const addCategory = useAdminStore((s) => s.addCategory);
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true);
+    await addCategory({
+      name: name.trim(),
+      slug: name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      parent_id: parentId,
+      image_url: "",
+      show_in_header: false,
+      display_order: 0,
+    } as any);
+    setSaving(false);
+    setName("");
+    onClose();
+  }
+
+  return (
+    <form onSubmit={handleAdd} className="flex items-center gap-2 pl-14 py-2 animate-fade-in">
+      <span className="text-gray-300">└</span>
+      <input
+        autoFocus
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nom de la sous-catégorie..."
+        className="flex-1 px-3 py-1.5 rounded-lg border border-pink-200 bg-pink-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+      />
+      <button type="submit" disabled={saving} className="px-3 py-1.5 rounded-lg bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 disabled:opacity-50">
+        {saving ? "..." : "Ajouter"}
+      </button>
+      <button type="button" onClick={onClose} className="px-2 py-1.5 rounded-lg text-gray-400 hover:text-gray-600 text-xs">
+        Annuler
+      </button>
+    </form>
+  );
+}
 
 export default function AdminCategories() {
   const categories = useAdminStore((s) => s.categories);
@@ -12,6 +56,7 @@ export default function AdminCategories() {
 
   const [modal, setModal] = useState<{ open: boolean; category: Category | null }>({ open: false, category: null });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [quickAddParent, setQuickAddParent] = useState<string | null>(null);
 
   const parentCats = categories.filter((c) => !c.parent_id);
 
@@ -20,35 +65,95 @@ export default function AdminCategories() {
   }
 
   /* ── Form state ── */
-  const [form, setForm] = useState({ name: "", slug: "", parent_id: "", image_url: "", display_order: 0 });
+  const [form, setForm] = useState({
+    name: "",
+    slug: "",
+    parent_id: "",
+    image_url: "",
+    show_in_header: true,
+    display_order: 0,
+  });
+  const [subInputs, setSubInputs] = useState<string[]>([""]);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   function openModal(cat: Category | null) {
     if (cat) {
-      setForm({ name: cat.name, slug: cat.slug, parent_id: cat.parent_id || "", image_url: cat.image_url, display_order: cat.display_order });
+      setForm({
+        name: cat.name,
+        slug: cat.slug,
+        parent_id: cat.parent_id || "",
+        image_url: cat.image_url || "",
+        show_in_header: cat.show_in_header ?? true,
+        display_order: cat.display_order,
+      });
+      setSubInputs([]); // No sub-inputs when editing an existing category
     } else {
-      setForm({ name: "", slug: "", parent_id: "", image_url: "", display_order: 0 });
+      setForm({ name: "", slug: "", parent_id: "", image_url: "", show_in_header: true, display_order: 0 });
+      setSubInputs([""]);
     }
     setModal({ open: true, category: cat });
   }
 
+  /* ── Image upload ── */
+  async function handleImageUpload(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("files", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Upload failed");
+      const { urls } = await res.json();
+      if (urls && urls.length > 0) {
+        setForm((f) => ({ ...f, image_url: urls[0] }));
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+    }
+    setUploading(false);
+  }
+
+  /* ── Save handler ── */
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    setSaving(true);
     const slug = form.slug || form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const data = {
+    const data: any = {
       name: form.name,
       slug,
       parent_id: form.parent_id || null,
       image_url: form.image_url,
+      show_in_header: form.show_in_header,
       display_order: Number(form.display_order),
     };
 
     if (modal.category) {
+      // Editing existing
       await updateCategory(modal.category.id, data);
     } else {
-      await addCategory(data as Omit<Category, "id">);
+      // Creating new — include subcategories
+      data.subcategories = subInputs.filter((s) => s.trim());
+      await addCategory(data);
     }
+    setSaving(false);
     setModal({ open: false, category: null });
   }
+
+  /* ── Sub-input helpers ── */
+  function addSubInput() {
+    setSubInputs([...subInputs, ""]);
+  }
+  function updateSubInput(index: number, value: string) {
+    const next = [...subInputs];
+    next[index] = value;
+    setSubInputs(next);
+  }
+  function removeSubInput(index: number) {
+    setSubInputs(subInputs.filter((_, i) => i !== index));
+  }
+
+  const isCreatingParent = !modal.category && !form.parent_id;
 
   return (
     <div className="p-6 lg:p-8">
@@ -56,7 +161,7 @@ export default function AdminCategories() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-black text-gray-900">Catégories</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{parentCats.length} catégories principales</p>
+          <p className="text-sm text-gray-500 mt-0.5">{parentCats.length} catégories principales · {categories.length - parentCats.length} sous-catégories</p>
         </div>
         <button
           onClick={() => openModal(null)}
@@ -76,15 +181,33 @@ export default function AdminCategories() {
               {/* Parent row */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-lg">
-                    📂
-                  </div>
+                  {/* Category image or fallback */}
+                  {parent.image_url ? (
+                    <img src={parent.image_url} alt={parent.name} className="w-12 h-12 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-lg">
+                      📂
+                    </div>
+                  )}
                   <div>
-                    <h3 className="font-bold text-gray-900">{parent.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-gray-900">{parent.name}</h3>
+                      {parent.show_in_header && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-700">NAV</span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-400">/{parent.slug} · {subs.length} sous-catégorie{subs.length > 1 ? "s" : ""}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Quick add sub-category button */}
+                  <button
+                    onClick={() => setQuickAddParent(quickAddParent === parent.id ? null : parent.id)}
+                    title="Ajouter une sous-catégorie"
+                    className="w-8 h-8 rounded-lg hover:bg-green-50 flex items-center justify-center text-green-500"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  </button>
                   <button onClick={() => openModal(parent)} className="w-8 h-8 rounded-lg hover:bg-blue-50 flex items-center justify-center text-blue-500">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                   </button>
@@ -122,39 +245,139 @@ export default function AdminCategories() {
                   ))}
                 </div>
               )}
+
+              {/* Quick add sub-category inline */}
+              {quickAddParent === parent.id && (
+                <QuickAddSub parentId={parent.id} onClose={() => setQuickAddParent(null)} />
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Modal */}
+      {/* ══════════════ MODAL ══════════════ */}
       {modal.open && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setModal({ open: false, category: null })}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">{modal.category ? "Modifier" : "Nouvelle catégorie"}</h2>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Modal header */}
+            <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+              <h2 className="text-lg font-bold text-gray-900">{modal.category ? "Modifier la catégorie" : "Nouvelle catégorie"}</h2>
               <button onClick={() => setModal({ open: false, category: null })} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">✕</button>
             </div>
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+
+            <form onSubmit={handleSave} className="p-6 space-y-5">
+              {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom de la catégorie *</label>
+                <input
+                  type="text" required value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="ex: Femme, Homme, Beauté..."
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+                />
               </div>
+
+              {/* Image upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie parente</label>
-                <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30">
-                  <option value="">— Aucune (catégorie principale) —</option>
-                  {parentCats.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image de la catégorie</label>
+                <p className="text-xs text-gray-400 mb-2">Apparaît sur le site entre le carrousel et les ventes flash</p>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(e.target.files[0]); }} />
+
+                {form.image_url ? (
+                  <div className="relative group">
+                    <img src={form.image_url} alt="Aperçu" className="w-full h-40 object-cover rounded-xl border border-gray-100" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-3">
+                      <button type="button" onClick={() => fileRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-white text-gray-800 text-xs font-semibold">Changer</button>
+                      <button type="button" onClick={() => setForm({ ...form, image_url: "" })} className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold">Supprimer</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full h-32 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-pink-300 hover:bg-pink-50/30 transition-colors"
+                  >
+                    {uploading ? (
+                      <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-xs text-gray-400">Cliquer pour uploader une image</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
+
+              {/* Show in header toggle */}
+              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Afficher dans la navigation</p>
+                  <p className="text-xs text-gray-400">Visible dans la barre du header</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, show_in_header: !form.show_in_header })}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${form.show_in_header ? "bg-pink-500" : "bg-gray-300"}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.show_in_header ? "translate-x-5" : ""}`} />
+                </button>
+              </div>
+
+              {/* Parent selector (only when editing) */}
+              {modal.category && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie parente</label>
+                  <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30">
+                    <option value="">— Aucune (catégorie principale) —</option>
+                    {parentCats.filter((c) => c.id !== modal.category?.id).map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Dynamic sub-categories (only when creating a parent) */}
+              {isCreatingParent && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">Sous-catégories</label>
+                    <button type="button" onClick={addSubInput} className="text-xs text-pink-500 font-semibold hover:text-pink-600 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      Ajouter
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {subInputs.map((val, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-gray-300 text-sm">└</span>
+                        <input
+                          type="text"
+                          value={val}
+                          onChange={(e) => updateSubInput(i, e.target.value)}
+                          placeholder={`Sous-catégorie ${i + 1}`}
+                          className="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+                        />
+                        {subInputs.length > 1 && (
+                          <button type="button" onClick={() => removeSubInput(i)} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-red-400">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button type="button" onClick={() => setModal({ open: false, category: null })} className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-lg shadow-pink-500/25">
-                  {modal.category ? "Enregistrer" : "Créer"}
+                <button type="submit" disabled={saving} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold shadow-lg shadow-pink-500/25 disabled:opacity-50">
+                  {saving ? "Enregistrement..." : modal.category ? "Enregistrer" : "Créer la catégorie"}
                 </button>
               </div>
             </form>
