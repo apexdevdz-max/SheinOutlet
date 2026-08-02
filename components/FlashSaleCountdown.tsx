@@ -80,7 +80,7 @@ export function FlashSaleCountdown() {
 
         {/* CTA */}
         <Link
-          href="/categories?filter=flash"
+          href="/?filter=promo"
           className="bg-primary hover:bg-primary-dark text-white text-sm font-bold px-6 py-2.5 rounded-full transition-all hover:shadow-lg hover:shadow-primary/30 whitespace-nowrap"
           id="flash-sale-cta"
         >
