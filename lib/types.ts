@@ -15,7 +15,7 @@ export interface Product {
   price: number;
   old_price: number | null;
   images: string[];
-  category_id: string;
+  category_id: string | null;
   sizes: string[];
   colors: string[];
   is_flash_sale: boolean;

@@ -214,7 +214,7 @@ export interface SearchIndexItem {
   price: number;
   old_price: number | null;
   thumbnail: string;
-  category_id: string;
+  category_id: string | null;
 }
 
 export async function getSearchIndex(): Promise<SearchIndexItem[]> {

@@ -142,7 +142,7 @@ export function CategoryCarousels() {
       .filter((c) => c.parent_id === parent.id)
       .map((c) => c.id);
     const allCatIds = [parent.id, ...childIds];
-    return allProducts.filter((p) => allCatIds.includes(p.category_id));
+    return allProducts.filter((p) => p.category_id && allCatIds.includes(p.category_id));
   }
 
   const rows: CategoryRow[] = [

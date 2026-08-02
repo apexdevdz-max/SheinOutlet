@@ -107,7 +107,7 @@ function HomeContent() {
     if (!parent) return [];
     const childIds = categories.filter((c) => c.parent_id === parent.id).map((c) => c.id);
     const allCatIds = [parent.id, ...childIds];
-    return allProducts.filter((p) => allCatIds.includes(p.category_id));
+    return allProducts.filter((p) => p.category_id && allCatIds.includes(p.category_id));
   }
 
   let bestSellers = allProducts.filter((p) => p.is_best_seller);

@@ -27,7 +27,7 @@ async function generate() {
     price: number;
     old_price: number | null;
     thumbnail: string;
-    category_id: string;
+    category_id: string | null;
   }> = [];
 
   if (supabaseUrl && supabaseKey) {

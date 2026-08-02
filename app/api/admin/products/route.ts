@@ -16,11 +16,29 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
 
+  // Auto-deduplicate slug
+  let slug = body.slug || "";
+  if (slug) {
+    const { data: existing } = await supabaseAdmin
+      .from("products")
+      .select("slug")
+      .like("slug", `${slug}%`);
+
+    if (existing && existing.length > 0) {
+      const existingSlugs = new Set(existing.map((p: { slug: string }) => p.slug));
+      if (existingSlugs.has(slug)) {
+        let i = 2;
+        while (existingSlugs.has(`${slug}-${i}`)) i++;
+        slug = `${slug}-${i}`;
+      }
+    }
+  }
+
   const { data, error } = await supabaseAdmin
     .from("products")
     .insert({
       name: body.name,
-      slug: body.slug,
+      slug,
       description: body.description || "",
       price: body.price,
       old_price: body.old_price || null,

@@ -305,5 +305,5 @@ export function getCategoryIdsBySlug(slug: string): string[] {
 export function filterProductsByCategory(slug: string): Product[] {
   const ids = getCategoryIdsBySlug(slug);
   if (ids.length === 0) return [];
-  return MOCK_PRODUCTS.filter((p) => ids.includes(p.category_id));
+  return MOCK_PRODUCTS.filter((p) => p.category_id && ids.includes(p.category_id));
 }

@@ -35,6 +35,10 @@ interface AdminState {
   toggleFlashSale: (id: string) => Promise<void>;
   toggleBestSeller: (id: string) => Promise<void>;
 
+  /* ── Bulk Actions ── */
+  bulkDiscount: (ids: string[], percent: number) => Promise<void>;
+  bulkSetPrice: (ids: string[], price: number) => Promise<void>;
+
   /* ── Categories ── */
   addCategory: (data: Omit<Category, "id">) => Promise<void>;
   updateCategory: (id: string, data: Partial<Category>) => Promise<void>;
@@ -152,6 +156,53 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     const product = get().products.find((p) => p.id === id);
     if (!product) return;
     await get().updateProduct(id, { is_best_seller: !product.is_best_seller });
+  },
+
+  /* ══════════════ BULK ACTIONS ══════════════ */
+  bulkDiscount: async (ids, percent) => {
+    try {
+      const res = await fetch("/api/admin/products/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, action: "discount", value: percent }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const { updated } = await res.json();
+      if (Array.isArray(updated)) {
+        set((s) => ({
+          products: s.products.map((p) => {
+            const u = updated.find((up: any) => up.id === p.id);
+            return u ? { ...p, ...u } : p;
+          }),
+        }));
+      }
+    } catch (err) {
+      console.error("[AdminStore] bulkDiscount error:", err);
+      set({ error: "Erreur lors de la réduction en masse" });
+    }
+  },
+
+  bulkSetPrice: async (ids, price) => {
+    try {
+      const res = await fetch("/api/admin/products/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, action: "set_price", value: price }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const { updated } = await res.json();
+      if (Array.isArray(updated)) {
+        set((s) => ({
+          products: s.products.map((p) => {
+            const u = updated.find((up: any) => up.id === p.id);
+            return u ? { ...p, ...u } : p;
+          }),
+        }));
+      }
+    } catch (err) {
+      console.error("[AdminStore] bulkSetPrice error:", err);
+      set({ error: "Erreur lors du changement de prix en masse" });
+    }
   },
 
   /* ══════════════ CATEGORIES ══════════════ */
