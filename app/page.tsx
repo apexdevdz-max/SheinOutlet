@@ -115,17 +115,17 @@ function HomeContent() {
 
   if (activeCat) {
     const catProducts = getProductsByCategory(activeCat);
-    bestSellers = catProducts.filter((p) => p.is_best_seller);
+    bestSellers = catProducts; // Show ALL products of this category
     flashProducts = catProducts.filter((p) => p.is_flash_sale);
   } else if (activeFilter === "promo") {
     const discounted = allProducts.filter((p) => p.old_price && p.old_price > p.price);
-    bestSellers = discounted.filter((p) => p.is_best_seller);
+    bestSellers = discounted;
     flashProducts = discounted.filter((p) => p.is_flash_sale);
   } else if (activeFilter === "new") {
     const sorted = [...allProducts].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-    bestSellers = sorted.slice(0, 8);
+    bestSellers = sorted.slice(0, 12);
     flashProducts = sorted.filter((p) => p.is_flash_sale).slice(0, 6);
   }
 
@@ -172,6 +172,38 @@ function HomeContent() {
                   ? "PROMOTIONS"
                   : ""}
           </h2>
+        </section>
+      )}
+
+      {/* ─── Filtered Products Grid ─── */}
+      {isFiltered && (bestSellersGrid.length > 0 || flashGrid.length > 0) && (
+        <section className="max-w-7xl mx-auto px-4 py-6">
+          {/* Flash sale products for this category */}
+          {flashGrid.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
+                <span className="text-lg">⚡</span> Ventes Flash
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {flashGrid.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Best sellers / all products for this category */}
+          {bestSellersGrid.length > 0 && (
+            <div>
+              <h3 className="text-base font-bold text-text mb-4">
+                {activeCat ? "Tous les produits" : activeFilter === "new" ? "Nouveautés" : "Promotions"}
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {bestSellersGrid.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
