@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-// GET /api/admin/products — List all products
+// GET /api/admin/products — List all products j
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("products")
