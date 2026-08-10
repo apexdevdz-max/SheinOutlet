@@ -16,7 +16,12 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
 
-  const slug = body.slug || body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const slug = body.slug || (() => {
+    const base = body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    // If this is a subcategory being created individually, prefix with parent slug
+    if (body.parent_id && body.parent_slug) return `${body.parent_slug}-${base}`;
+    return base;
+  })();
 
   // Create the parent/main category
   const { data: category, error } = await supabaseAdmin
@@ -43,7 +48,7 @@ export async function POST(req: Request) {
       .filter((name: string) => name.trim())
       .map((name: string, i: number) => ({
         name: name.trim(),
-        slug: name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+        slug: `${slug}-${name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
         image_url: "",
         parent_id: category.id,
         show_in_header: false,

@@ -8,6 +8,11 @@ export interface Category {
   display_order: number;
 }
 
+export interface ProductAttribute {
+  label: string;
+  values: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -17,7 +22,10 @@ export interface Product {
   old_price: number | null;
   images: string[];
   category_id: string | null;
+  attributes: ProductAttribute[];
+  // Legacy fields (kept for backward compat, derived from attributes)
   sizes: string[];
+  sizes_label: string;
   colors: string[];
   is_flash_sale: boolean;
   is_best_seller: boolean;
@@ -76,10 +84,14 @@ export interface OrderItem {
 
 export interface Banner {
   id: string;
-  image: string;
-  alt: string;
+  image_url: string;
+  title: string;
+  subtitle: string;
   href: string;
-  order: number;
+  is_active: boolean;
+  show_text: boolean;
+  display_order: number;
+  created_at?: string;
 }
 
 export interface SiteSettings {
@@ -89,4 +101,12 @@ export interface SiteSettings {
   siteDescription: string;
   contactEmail: string;
   contactPhone: string;
+}
+
+export interface CategoryAttributeTemplate {
+  id: string;
+  category_id: string;
+  attribute_name: string;
+  attribute_values: string[];
+  created_at?: string;
 }

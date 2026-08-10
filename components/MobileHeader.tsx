@@ -4,16 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
-
-const NAV_TABS = [
-  { label: "Tout", cat: null, filter: null },
-  { label: "Nouveautés", cat: null, filter: "new" },
-  { label: "Femme", cat: "femme", filter: null },
-  { label: "Homme", cat: "homme", filter: null },
-  { label: "Chaussures", cat: "chaussures", filter: null },
-  { label: "Sacs", cat: "sacs-accessoires", filter: null },
-  { label: "Promos", cat: null, filter: "promo" },
-];
+import type { Category } from "@/lib/types";
 
 export function MobileHeader() {
   const router = useRouter();
@@ -22,6 +13,7 @@ export function MobileHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dynamicCats, setDynamicCats] = useState<Category[]>([]);
 
   const activeCat = searchParams.get("cat");
   const activeFilter = searchParams.get("filter");
@@ -33,6 +25,34 @@ export function MobileHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Fetch dynamic categories (same as desktop Header)
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((cats: Category[]) => {
+        if (Array.isArray(cats)) {
+          setDynamicCats(
+            cats
+              .filter((c) => !c.parent_id && c.show_in_header)
+              .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Build tabs dynamically: Tout + Nouveautés + [dynamic cats] + Promos
+  const navTabs = [
+    { label: "Tout", cat: null as string | null, filter: null as string | null },
+    { label: "Nouveautés", cat: null, filter: "new" },
+    ...dynamicCats.map((c) => ({
+      label: c.name,
+      cat: c.slug,
+      filter: null,
+    })),
+    { label: "Promos", cat: null, filter: "promo" },
+  ];
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim().length >= 1) {
@@ -42,12 +62,12 @@ export function MobileHeader() {
     }
   };
 
-  function tabHref(tab: (typeof NAV_TABS)[0]) {
+  function tabHref(tab: (typeof navTabs)[0]) {
     if (tab.cat) return `/?cat=${tab.cat}`;
     if (tab.filter) return `/?filter=${tab.filter}`;
     return "/";
   }
-  function isTabActive(tab: (typeof NAV_TABS)[0]) {
+  function isTabActive(tab: (typeof navTabs)[0]) {
     if (!tab.cat && !tab.filter) return !activeCat && !activeFilter;
     if (tab.cat) return activeCat === tab.cat;
     if (tab.filter) return activeFilter === tab.filter;
@@ -115,7 +135,7 @@ export function MobileHeader() {
         {/* Row 2: Category tabs — transparent, scrollable horizontally */}
         <div className="overflow-x-auto scrollbar-none">
           <div className="flex gap-0.5 px-3 pb-2 min-w-max">
-            {NAV_TABS.map((tab) => (
+            {navTabs.map((tab) => (
               <Link
                 key={tab.label}
                 href={tabHref(tab)}

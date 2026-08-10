@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
-import type { Category } from "@/lib/types";
+import { toast } from "@/lib/store/useToastStore";
+import type { Category, CategoryAttributeTemplate } from "@/lib/types";
 
 /* ── Quick sub-category inline modal ── */
 function QuickAddSub({ parentId, onClose }: { parentId: string; onClose: () => void }) {
@@ -48,6 +49,132 @@ function QuickAddSub({ parentId, onClose }: { parentId: string; onClose: () => v
   );
 }
 
+/* ── Attribute Templates Modal ── */
+function AttributeTemplatesModal({ categoryId, categoryName, onClose }: { categoryId: string; categoryName: string; onClose: () => void }) {
+  const [templates, setTemplates] = useState<CategoryAttributeTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState("");
+  const [newValues, setNewValues] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Fetch templates for this category
+  useEffect(() => {
+    fetch(`/api/admin/category-templates?category_id=${categoryId}`)
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setTemplates(data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [categoryId]);
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/category-templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category_id: categoryId,
+          attribute_name: newName.trim(),
+          attribute_values: newValues.split(",").map((v) => v.trim()).filter(Boolean),
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const tpl = await res.json();
+      setTemplates((prev) => [...prev, tpl]);
+      setNewName("");
+      setNewValues("");
+      toast.success("Caractéristique ajoutée");
+    } catch (err) {
+      toast.apiError(err instanceof Error ? err : "Erreur");
+    }
+    setSaving(false);
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      const res = await fetch(`/api/admin/category-templates?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      setTemplates((prev) => prev.filter((t) => t.id !== id));
+      toast.success("Caractéristique supprimée");
+    } catch (err) {
+      toast.apiError(err instanceof Error ? err : "Erreur");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="border-b border-gray-100 px-5 py-4 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Caractéristiques</h2>
+            <p className="text-xs text-gray-400">{categoryName}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">✕</button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Existing templates */}
+          {loading ? (
+            <p className="text-sm text-gray-400 text-center py-4">Chargement...</p>
+          ) : templates.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">Aucune caractéristique définie</p>
+          ) : (
+            <div className="space-y-2">
+              {templates.map((tpl) => (
+                <div key={tpl.id} className="flex items-start justify-between gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800">{tpl.attribute_name}</p>
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {tpl.attribute_values.map((v, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 text-[10px] font-medium">{v}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(tpl.id)}
+                    className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-red-300 hover:text-red-500 flex-shrink-0"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new template */}
+          <form onSubmit={handleAdd} className="space-y-3 pt-2 border-t border-gray-100">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ajouter une caractéristique</p>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nom (ex: Capacité, Taille, Matière...)"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+            />
+            <input
+              type="text"
+              value={newValues}
+              onChange={(e) => setNewValues(e.target.value)}
+              placeholder="Valeurs séparées par virgule (ex: 128GB, 256GB, 512GB)"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+            />
+            <button
+              type="submit"
+              disabled={saving || !newName.trim()}
+              className="w-full py-2 rounded-lg bg-pink-500 text-white text-sm font-semibold hover:bg-pink-600 disabled:opacity-50 transition-colors"
+            >
+              {saving ? "Ajout..." : "Ajouter"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCategories() {
   const categories = useAdminStore((s) => s.categories);
   const addCategory = useAdminStore((s) => s.addCategory);
@@ -57,11 +184,25 @@ export default function AdminCategories() {
   const [modal, setModal] = useState<{ open: boolean; category: Category | null }>({ open: false, category: null });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [quickAddParent, setQuickAddParent] = useState<string | null>(null);
+  const [attrModalCat, setAttrModalCat] = useState<{ id: string; name: string } | null>(null);
 
-  const parentCats = categories.filter((c) => !c.parent_id);
+  const parentCats = categories.filter((c) => !c.parent_id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
   function getSubcategories(parentId: string) {
     return categories.filter((c) => c.parent_id === parentId);
+  }
+
+  /* Move a parent category up or down */
+  async function moveCategory(index: number, direction: "up" | "down") {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= parentCats.length) return;
+    const a = parentCats[index];
+    const b = parentCats[newIndex];
+    // Swap display_order values
+    await Promise.all([
+      updateCategory(a.id, { display_order: b.display_order ?? newIndex }),
+      updateCategory(b.id, { display_order: a.display_order ?? index }),
+    ]);
   }
 
   /* ── Form state ── */
@@ -200,6 +341,25 @@ export default function AdminCategories() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Reorder arrows */}
+                  <div className="flex flex-col mr-1">
+                    <button
+                      onClick={() => moveCategory(parentCats.indexOf(parent), "up")}
+                      disabled={parentCats.indexOf(parent) === 0}
+                      title="Monter"
+                      className="w-6 h-5 flex items-center justify-center text-gray-400 hover:text-pink-500 disabled:opacity-20 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+                    </button>
+                    <button
+                      onClick={() => moveCategory(parentCats.indexOf(parent), "down")}
+                      disabled={parentCats.indexOf(parent) === parentCats.length - 1}
+                      title="Descendre"
+                      className="w-6 h-5 flex items-center justify-center text-gray-400 hover:text-pink-500 disabled:opacity-20 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                  </div>
                   {/* Quick add sub-category button */}
                   <button
                     onClick={() => setQuickAddParent(quickAddParent === parent.id ? null : parent.id)}
@@ -234,6 +394,13 @@ export default function AdminCategories() {
                         <span className="text-xs text-gray-400">/{sub.slug}</span>
                       </div>
                       <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setAttrModalCat({ id: sub.id, name: sub.name })}
+                          title="Caractéristiques prédéfinies"
+                          className="w-7 h-7 rounded-lg hover:bg-purple-50 flex items-center justify-center text-purple-400 hover:text-purple-600"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </button>
                         <button onClick={() => openModal(sub)} className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-blue-400">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </button>
@@ -383,6 +550,15 @@ export default function AdminCategories() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ══════════════ ATTRIBUTE TEMPLATES MODAL ══════════════ */}
+      {attrModalCat && (
+        <AttributeTemplatesModal
+          categoryId={attrModalCat.id}
+          categoryName={attrModalCat.name}
+          onClose={() => setAttrModalCat(null)}
+        />
       )}
     </div>
   );

@@ -40,7 +40,11 @@ export function Header() {
       .then((r) => r.json())
       .then((cats: Category[]) => {
         if (Array.isArray(cats)) {
-          setHeaderCategories(cats.filter((c) => !c.parent_id && c.show_in_header));
+          setHeaderCategories(
+            cats
+              .filter((c) => !c.parent_id && c.show_in_header)
+              .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+          );
         }
       })
       .catch(() => {});

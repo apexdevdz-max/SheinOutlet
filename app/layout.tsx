@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { MainContent } from "@/components/MainContent";
+import { ToastContainer } from "@/components/ToastContainer";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased flex flex-col min-h-screen">
+        <ToastContainer />
         <Suspense fallback={null}>
           <Header />
         </Suspense>

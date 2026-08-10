@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import type { Product, Category, Banner, SiteSettings } from "@/lib/types";
+import { toast } from "@/lib/store/useToastStore";
 
 /* ── Default settings (used before fetch completes) ── */
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -89,7 +90,8 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       });
     } catch (err) {
       console.error("[AdminStore] fetchAll error:", err);
-      set({ error: "Erreur de chargement des données", loading: false });
+      toast.apiError(err instanceof Error ? err : "Erreur de chargement des données");
+      set({ error: null, loading: false });
     }
   },
 
@@ -104,9 +106,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       if (!res.ok) throw new Error(await res.text());
       const product = await res.json();
       set((s) => ({ products: [product, ...s.products] }));
+      toast.success("Produit ajouté", `"${product.name}" a été créé avec succès.`);
     } catch (err) {
       console.error("[AdminStore] addProduct error:", err);
-      set({ error: "Erreur lors de l'ajout du produit" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de l'ajout du produit");
     }
   },
 
@@ -122,9 +125,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       set((s) => ({
         products: s.products.map((p) => (p.id === id ? { ...p, ...updated } : p)),
       }));
+      toast.success("Produit mis à jour");
     } catch (err) {
       console.error("[AdminStore] updateProduct error:", err);
-      set({ error: "Erreur lors de la mise à jour" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la mise à jour");
     }
   },
 
@@ -133,9 +137,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       set((s) => ({ products: s.products.filter((p) => p.id !== id) }));
+      toast.success("Produit supprimé");
     } catch (err) {
       console.error("[AdminStore] deleteProduct error:", err);
-      set({ error: "Erreur lors de la suppression" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la suppression");
     }
   },
 
@@ -178,7 +183,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       }
     } catch (err) {
       console.error("[AdminStore] bulkDiscount error:", err);
-      set({ error: "Erreur lors de la réduction en masse" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la réduction en masse");
     }
   },
 
@@ -201,7 +206,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       }
     } catch (err) {
       console.error("[AdminStore] bulkSetPrice error:", err);
-      set({ error: "Erreur lors du changement de prix en masse" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors du changement de prix en masse");
     }
   },
 
@@ -218,9 +223,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       // API returns { category, subcategories } for batch creation
       const newItems = [result.category, ...(result.subcategories || [])].filter(Boolean);
       set((s) => ({ categories: [...s.categories, ...newItems] }));
+      toast.success("Catégorie créée", `"${result.category?.name}" a été ajoutée.`);
     } catch (err) {
       console.error("[AdminStore] addCategory error:", err);
-      set({ error: "Erreur lors de l'ajout de la catégorie" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de l'ajout de la catégorie");
     }
   },
 
@@ -236,9 +242,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       set((s) => ({
         categories: s.categories.map((c) => (c.id === id ? { ...c, ...updated } : c)),
       }));
+      toast.success("Catégorie mise à jour");
     } catch (err) {
       console.error("[AdminStore] updateCategory error:", err);
-      set({ error: "Erreur lors de la mise à jour" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la mise à jour");
     }
   },
 
@@ -247,9 +254,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       set((s) => ({ categories: s.categories.filter((c) => c.id !== id) }));
+      toast.success("Catégorie supprimée");
     } catch (err) {
       console.error("[AdminStore] deleteCategory error:", err);
-      set({ error: "Erreur lors de la suppression" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la suppression");
     }
   },
 
@@ -264,9 +272,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       if (!res.ok) throw new Error(await res.text());
       const banner = await res.json();
       set((s) => ({ banners: [...s.banners, banner] }));
+      toast.success("Bannière ajoutée");
     } catch (err) {
       console.error("[AdminStore] addBanner error:", err);
-      set({ error: "Erreur lors de l'ajout de la bannière" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de l'ajout de la bannière");
     }
   },
 
@@ -282,9 +291,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       set((s) => ({
         banners: s.banners.map((b) => (b.id === id ? { ...b, ...updated } : b)),
       }));
+      toast.success("Bannière mise à jour");
     } catch (err) {
       console.error("[AdminStore] updateBanner error:", err);
-      set({ error: "Erreur lors de la mise à jour" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la mise à jour");
     }
   },
 
@@ -293,9 +303,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(await res.text());
       set((s) => ({ banners: s.banners.filter((b) => b.id !== id) }));
+      toast.success("Bannière supprimée");
     } catch (err) {
       console.error("[AdminStore] deleteBanner error:", err);
-      set({ error: "Erreur lors de la suppression" });
+      toast.apiError(err instanceof Error ? err : "Erreur lors de la suppression");
     }
   },
 

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-// GET /api/admin/banners
+// GET /api/admin/banners — All banners (including inactive) for admin
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("banners")
     .select("*")
-    .order("order", { ascending: true });
+    .order("display_order", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
@@ -19,10 +19,12 @@ export async function POST(req: Request) {
   const { data, error } = await supabaseAdmin
     .from("banners")
     .insert({
-      image: body.image,
-      alt: body.alt || "",
+      image_url: body.image_url || "",
+      title: body.title || "",
+      subtitle: body.subtitle || "",
       href: body.href || "/",
-      order: body.order || 0,
+      is_active: body.is_active ?? true,
+      display_order: body.display_order || 0,
     })
     .select()
     .single();
@@ -35,12 +37,18 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   const body = await req.json();
 
-  // body is an array of banners with updated order
   if (Array.isArray(body)) {
     for (const banner of body) {
       await supabaseAdmin
         .from("banners")
-        .update({ order: banner.order, image: banner.image, alt: banner.alt, href: banner.href })
+        .update({
+          display_order: banner.display_order,
+          image_url: banner.image_url,
+          title: banner.title,
+          subtitle: banner.subtitle,
+          href: banner.href,
+          is_active: banner.is_active,
+        })
         .eq("id", banner.id);
     }
     return NextResponse.json({ success: true });

@@ -166,7 +166,7 @@ export default function CartPage() {
                     </div>
                     <p className="text-xs text-text-muted mt-0.5">
                       {item.selectedColor && `Couleur: ${item.selectedColor}`}
-                      {item.selectedSize && ` · Taille: ${item.selectedSize}`}
+                      {item.selectedSize && ` · ${item.product.sizes_label || "Taille"}: ${item.selectedSize}`}
                     </p>
                     {item.product.old_price && (
                       <p className="text-xs text-text-muted line-through mt-0.5">{formatPrice(item.product.old_price)}</p>

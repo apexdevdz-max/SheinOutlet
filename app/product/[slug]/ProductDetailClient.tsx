@@ -10,8 +10,24 @@ import type { Product } from "@/lib/types";
 
 export function ProductDetailClient({ product }: { product: Product }) {
   const { addToCart, toggleFavorite, isFavorite } = useStore();
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "");
-  const [selectedColor, setSelectedColor] = useState(product.colors[0] || "");
+
+  // Build display attributes: prefer attributes array, fallback to legacy
+  const displayAttrs = (product.attributes && product.attributes.length > 0)
+    ? product.attributes
+    : [
+        ...(product.sizes?.length > 0 ? [{ label: product.sizes_label || "Taille", values: product.sizes }] : []),
+        ...(product.colors?.length > 0 ? [{ label: "Couleur", values: product.colors }] : []),
+      ];
+
+  // Track selected value per attribute (keyed by label)
+  const [selections, setSelections] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    displayAttrs.forEach((attr) => {
+      if (attr.values.length > 0) init[attr.label] = attr.values[0];
+    });
+    return init;
+  });
+
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
 
@@ -19,6 +35,9 @@ export function ProductDetailClient({ product }: { product: Product }) {
   const fav = isFavorite(product.id);
 
   const handleAddToCart = () => {
+    // Pass first attribute as "size" and second as "color" for backward compat
+    const selectedSize = selections[displayAttrs[0]?.label] || "";
+    const selectedColor = selections[displayAttrs[1]?.label] || "";
     addToCart(product, selectedSize, selectedColor);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
@@ -78,15 +97,15 @@ export function ProductDetailClient({ product }: { product: Product }) {
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-all"
             id="product-fav-btn"
           >
-            <svg className={`w-5 h-5 ${fav ? "text-primary fill-primary" : "text-gray-400"}`} fill={fav ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={fav ? 0 : 1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <svg className={`w-5 h-5 ${fav ? "text-red-500 fill-red-500" : "text-gray-400"}`} viewBox="0 0 24 24" stroke="currentColor" fill={fav ? "currentColor" : "none"} strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
         </div>
 
         {/* Product Info */}
         <div className="flex flex-col">
-          <h1 className="text-xl md:text-3xl font-bold text-text mb-3">{product.name}</h1>
+          <h1 className="text-xl md:text-2xl font-black text-text leading-tight mb-2">{product.name}</h1>
 
           {/* Price */}
           <div className="flex items-baseline gap-3 mb-4">
@@ -102,53 +121,29 @@ export function ProductDetailClient({ product }: { product: Product }) {
           {/* Description */}
           <p className="text-sm text-text-light leading-relaxed mb-6">{product.description}</p>
 
-          {/* Color Selection */}
-          {product.colors.length > 0 && (
-            <div className="mb-5">
+          {/* Dynamic Attributes */}
+          {displayAttrs.map((attr) => (
+            <div key={attr.label} className="mb-5">
               <h3 className="text-sm font-bold text-text mb-2">
-                Couleur : <span className="font-normal text-text-light">{selectedColor}</span>
+                {attr.label} : <span className="font-normal text-text-light">{selections[attr.label] || ""}</span>
               </h3>
               <div className="flex gap-2 flex-wrap">
-                {product.colors.map((color) => (
+                {attr.values.map((val) => (
                   <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
+                    key={val}
+                    onClick={() => setSelections({ ...selections, [attr.label]: val })}
                     className={`px-4 py-2 rounded-full text-sm border transition-all ${
-                      selectedColor === color
+                      selections[attr.label] === val
                         ? "border-primary bg-primary-light text-primary font-medium"
                         : "border-border text-text-light hover:border-primary/50"
                     }`}
                   >
-                    {color}
+                    {val}
                   </button>
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Size Selection */}
-          {product.sizes.length > 0 && (
-            <div className="mb-5">
-              <h3 className="text-sm font-bold text-text mb-2">
-                Taille : <span className="font-normal text-text-light">{selectedSize}</span>
-              </h3>
-              <div className="flex gap-2 flex-wrap">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`w-12 h-12 rounded-lg text-sm font-medium border transition-all flex items-center justify-center ${
-                      selectedSize === size
-                        ? "border-primary bg-primary text-white shadow-md"
-                        : "border-border text-text hover:border-primary/50"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
 
           {/* Quantity */}
           <div className="mb-6">

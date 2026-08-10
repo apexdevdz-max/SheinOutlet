@@ -7,13 +7,17 @@
 CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  slug TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL,
   image_url TEXT DEFAULT '',
   parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
   show_in_header BOOLEAN DEFAULT TRUE,
   display_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Allow same slug for subcategories under different parents
+CREATE UNIQUE INDEX IF NOT EXISTS categories_slug_parent_unique
+  ON categories (slug, COALESCE(parent_id, '00000000-0000-0000-0000-000000000000'::uuid));
 
 -- 2. Products Table
 CREATE TABLE IF NOT EXISTS products (

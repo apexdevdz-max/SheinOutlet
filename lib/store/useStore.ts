@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product, CartItem, FavoriteItem } from "@/lib/types";
+import { toast } from "@/lib/store/useToastStore";
 
 interface StoreState {
   // Cart
@@ -59,6 +60,7 @@ export const useStore = create<StoreState>()(
             cart: [...cart, { product, quantity: 1, selectedSize: size, selectedColor: color }],
           });
         }
+        toast.success("Ajouté au panier", `"${product.name}" a été ajouté.`);
       },
 
       removeFromCart: (productId, size, color) => {
@@ -105,10 +107,12 @@ export const useStore = create<StoreState>()(
         const exists = favorites.find((f) => f.product.id === product.id);
         if (exists) {
           set({ favorites: favorites.filter((f) => f.product.id !== product.id) });
+          toast.info("Retiré des favoris", `"${product.name}" a été retiré.`);
         } else {
           set({
             favorites: [...favorites, { product, addedAt: new Date().toISOString() }],
           });
+          toast.success("Ajouté aux favoris", `"${product.name}" a été ajouté.`);
         }
       },
 
