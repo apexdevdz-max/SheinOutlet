@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -13,7 +13,7 @@ export function Footer() {
             <div className="mb-4">
               <span className="text-2xl font-black tracking-tight">
                 SHEIN <span className="text-primary italic">outlet</span>
-                <span className="text-primary text-xs align-super">✦</span>
+                <span className="text-primary text-xs align-super"></span>
               </span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
@@ -108,7 +108,7 @@ function MediaUploader({
                 onClick={() => removeImage(i)}
                 className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
               >
-                ✕
+                
               </button>
               <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 {i + 1}
@@ -990,7 +990,7 @@ export default function AdminProducts() {
                 </svg>
                 Filtres avancés
               </h2>
-              <button onClick={() => setFilterModalOpen(false)} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">✕</button>
+              <button onClick={() => setFilterModalOpen(false)} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400"></button>
             </div>
 
             <div className="p-6 space-y-5">

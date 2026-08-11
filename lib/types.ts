@@ -110,3 +110,12 @@ export interface CategoryAttributeTemplate {
   attribute_values: string[];
   created_at?: string;
 }
+
+export interface FlashSale {
+  id: string;
+  title: string;
+  subtitle: string;
+  end_date: string;
+  is_active: boolean;
+  created_at?: string;
+}

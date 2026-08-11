@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -27,7 +27,7 @@ function CartCountdown() {
 
   return (
     <div className="bg-primary-light border border-primary/20 rounded-xl p-3 mb-4 flex items-center gap-2">
-      <span className="text-lg">⚡</span>
+      <span className="text-lg"></span>
       <p className="text-xs text-text">
         Votre Panier est valide pendant :{" "}
         <span className="font-bold text-primary">
@@ -100,7 +100,7 @@ export default function CartPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-2xl font-black text-text mb-3">Commande Confirmée ! 🎉</h1>
+        <h1 className="text-2xl font-black text-text mb-3">Commande Confirmée ! </h1>
         <p className="text-text-light mb-2">Merci pour votre commande. Vous serez contacté(e) par téléphone pour confirmer la livraison.</p>
         <p className="text-sm text-text-muted mb-8">Paiement à la livraison (COD)</p>
         <Link href="/" className="inline-block bg-black text-white font-bold px-8 py-3 rounded-full hover:bg-gray-800 transition-colors">

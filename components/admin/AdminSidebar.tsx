@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -42,6 +42,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Ventes Flash",
+    href: "/admin/flash-sales",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
     label: "Paramètres",
     href: "/admin/settings",
     icon: (
@@ -72,7 +81,7 @@ export function AdminSidebar() {
           <h1 className="text-2xl font-black tracking-tight text-gray-900">
             SHEIN{" "}
             <span className="text-pink-500 italic">outlet</span>
-            <span className="text-pink-500 text-[8px] align-super">✦</span>
+            <span className="text-pink-500 text-[8px] align-super"></span>
           </h1>
           <p className="text-[10px] text-gray-400 font-medium mt-0.5 tracking-wider uppercase">
             Administration

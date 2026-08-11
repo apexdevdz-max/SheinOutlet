@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -41,14 +41,14 @@ export default function CategoriesPage() {
           href="/?filter=new"
           className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
         >
-          <p className="text-xs font-bold text-primary-dark">✨ Nouveautés</p>
+          <p className="text-xs font-bold text-primary-dark"> Nouveautés</p>
           <p className="text-[10px] text-text-muted">Chaque semaine</p>
         </Link>
         <Link
           href="/?filter=promo"
           className="flex-shrink-0 promo-gradient rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
         >
-          <p className="text-xs font-bold text-primary-dark">🔥 Promotions</p>
+          <p className="text-xs font-bold text-primary-dark"> Promotions</p>
           <p className="text-[10px] text-text-muted">Jusqu&apos;à -70%</p>
         </Link>
       </div>

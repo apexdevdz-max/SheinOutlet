@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
@@ -31,7 +31,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center bg-red-50 rounded-2xl p-8 max-w-md">
-          <p className="text-red-600 font-semibold mb-2">⚠️ Erreur</p>
+          <p className="text-red-600 font-semibold mb-2"> Erreur</p>
           <p className="text-sm text-red-500 mb-4">{error}</p>
           <button
             onClick={() => fetchAll()}

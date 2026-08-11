@@ -32,7 +32,7 @@ export default function AdminSettings() {
         {/* Site Info */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-            🏪 Informations du site
+            Informations du site
           </h3>
           <div className="space-y-4">
             <div>
@@ -55,7 +55,7 @@ export default function AdminSettings() {
         {/* Contact */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-            📞 Contact
+            Contact
           </h3>
           <div className="space-y-4">
             <div>
@@ -89,7 +89,7 @@ export default function AdminSettings() {
         {/* Shipping */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-            🚚 Livraison
+            Livraison
           </h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Frais de livraison par défaut (DA)</label>

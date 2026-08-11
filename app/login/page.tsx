@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -57,7 +57,7 @@ function LoginForm() {
           <h1 className="text-4xl font-black tracking-tight text-gray-900">
             SHEIN{" "}
             <span className="text-pink-500 italic">outlet</span>
-            <span className="text-pink-500 text-xs align-super">✦</span>
+            <span className="text-pink-500 text-xs align-super"></span>
           </h1>
           <p className="text-sm text-gray-500 mt-2">Panel d&apos;administration</p>
         </div>

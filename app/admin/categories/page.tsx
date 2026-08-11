@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
@@ -112,7 +112,7 @@ function AttributeTemplatesModal({ categoryId, categoryName, onClose }: { catego
             <h2 className="text-base font-bold text-gray-900">Caractéristiques</h2>
             <p className="text-xs text-gray-400">{categoryName}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">✕</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400"></button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -327,7 +327,7 @@ export default function AdminCategories() {
                     <img src={parent.image_url} alt={parent.name} className="w-12 h-12 rounded-xl object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-lg">
-                      📂
+                      
                     </div>
                   )}
                   <div>
@@ -429,7 +429,7 @@ export default function AdminCategories() {
             {/* Modal header */}
             <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
               <h2 className="text-lg font-bold text-gray-900">{modal.category ? "Modifier la catégorie" : "Nouvelle catégorie"}</h2>
-              <button onClick={() => setModal({ open: false, category: null })} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">✕</button>
+              <button onClick={() => setModal({ open: false, category: null })} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400"></button>
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-5">

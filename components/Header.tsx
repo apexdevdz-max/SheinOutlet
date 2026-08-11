@@ -54,7 +54,7 @@ export function Header() {
     if (link.href === "/") return !activeCat && !activeFilter;
     if (link.slug && activeCat === link.slug) return true;
     if (link.label === "NOUVEAUTÉS" && activeFilter === "new") return true;
-    if (link.label === "PROMOTIONS" && activeFilter === "promo") return true;
+    if (link.label === "PROMOTIONS" && pathname === "/promotions") return true;
     return false;
   }
 
@@ -67,7 +67,7 @@ export function Header() {
       href: `/?cat=${c.slug}`,
       slug: c.slug,
     })),
-    { label: "PROMOTIONS", href: "/?filter=promo", slug: null },
+    { label: "PROMOTIONS", href: "/promotions", slug: null },
   ];
 
   /* Shared dynamic classes based on scroll state */

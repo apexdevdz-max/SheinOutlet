@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
@@ -396,7 +396,7 @@ export default function AdminCarousel() {
 
       {banners.length === 0 && (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-5xl mb-3">🖼️</p>
+          <p className="text-5xl mb-3"></p>
           <p className="text-sm">Aucune bannière. Ajoutez-en une pour le carrousel.</p>
         </div>
       )}
@@ -410,7 +410,7 @@ export default function AdminCarousel() {
               <h2 className="text-lg font-bold text-gray-900">
                 {modal.banner ? "Modifier la bannière" : "Nouvelle bannière"}
               </h2>
-              <button onClick={() => setModal({ open: false, banner: null })} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400">✕</button>
+              <button onClick={() => setModal({ open: false, banner: null })} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400"></button>
             </div>
 
             <form onSubmit={handleSave} className="p-6 space-y-5">

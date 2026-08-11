@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -314,7 +314,7 @@ function HomeContent() {
           {flashGrid.length > 0 && (
             <div className="mb-8">
               <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-                <span className="text-lg">⚡</span> Ventes Flash
+                <span className="text-lg"></span> Ventes Flash
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {flashGrid.map((p) => (
@@ -385,7 +385,7 @@ function HomeContent() {
                 <p className="text-sm text-text-light">Chaque semaine</p>
               </div>
               <div className="w-16 h-16 rounded-full bg-pink-200/50 flex items-center justify-center">
-                <span className="text-2xl">✨</span>
+                <span className="text-2xl"> </span>
               </div>
             </div>
             <div className="bg-gradient-to-r from-pink-100 to-rose-100 rounded-2xl p-6 flex items-center justify-between hover:shadow-lg transition-shadow cursor-pointer">

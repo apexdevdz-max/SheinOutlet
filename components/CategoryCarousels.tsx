@@ -150,32 +150,24 @@ export function CategoryCarousels() {
       title: "NOUVEAUTÉS",
       href: "/?filter=new",
       products: newProducts,
-      icon: "✨",
+      icon: " ",
     },
     {
       title: "MEILLEURES VENTES",
       href: "/categories?filter=best",
       products: bestSellers,
-      icon: "🏆",
+      icon: "",
     },
     {
       title: "OFFRES FLASH",
       href: "/categories?filter=flash",
       products: flashProducts,
-      icon: "⚡",
+      icon: "",
     },
     ...parentCats.map((cat) => ({
       title: cat.name.toUpperCase(),
       href: `/?cat=${cat.slug}`,
       products: getProductsByCategory(cat.slug).slice(0, 12),
-      icon:
-        cat.slug === "femme"
-          ? "👗"
-          : cat.slug === "homme"
-            ? "👔"
-            : cat.slug === "chaussures"
-              ? "👟"
-              : "👜",
     })),
   ];
 
