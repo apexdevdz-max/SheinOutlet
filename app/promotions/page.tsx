@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { FlashSaleCountdown } from "@/components/FlashSaleCountdown";
+import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
 import type { Product, FlashSale } from "@/lib/types";
 
 export default function PromotionsPage() {
@@ -60,13 +61,25 @@ export default function PromotionsPage() {
           </p>
         </div>
 
-        {/* Products Grid */}
+        {/* Products Grid with Filters */}
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ProductFilterSidebar products={products}>
+            {(filtered) => (
+              <>
+                {filtered.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                    {filtered.map((p) => (
+                      <ProductCard key={p.id} product={p} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-sm text-gray-500">Aucun produit ne correspond aux filtres.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </ProductFilterSidebar>
         ) : (
           <div className="text-center py-20">
             <div className="text-6xl mb-4"></div>

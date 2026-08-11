@@ -262,3 +262,12 @@ input:focus, select:focus, textarea:focus {
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
 }
+
+/* Filter drawer slide-in */
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}

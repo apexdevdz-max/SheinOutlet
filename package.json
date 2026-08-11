@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.49.0",
     "embla-carousel-autoplay": "^8.6.0",

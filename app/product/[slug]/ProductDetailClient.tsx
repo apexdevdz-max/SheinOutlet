@@ -1,15 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import cloudinaryLoader from "@/lib/cloudinary";
 import { useStore } from "@/lib/store/useStore";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
 import type { Product } from "@/lib/types";
+import { ProductCard } from "@/components/ProductCard";
 
-export function ProductDetailClient({ product }: { product: Product }) {
+/* ── Related Products Carousel ── */
+function RelatedProducts({ products }: { products: Product[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  if (products.length === 0) return null;
+
+  function scroll(dir: "left" | "right") {
+    if (!scrollRef.current) return;
+    const amount = 300;
+    scrollRef.current.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  }
+
+  return (
+    <section className="mt-12 md:mt-16">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl md:text-2xl font-black text-text">Produits Apparentés</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => scroll("left")}
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-gray-300 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1 snap-x snap-mandatory"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {products.map((p) => (
+          <div key={p.id} className="flex-shrink-0 w-[180px] md:w-[220px] snap-start">
+            <ProductCard product={p} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function ProductDetailClient({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
   const { addToCart, toggleFavorite, isFavorite } = useStore();
+
+  // Image gallery state
+  const allImages = product.images && product.images.length > 0 ? product.images : [];
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [currentUrl, setCurrentUrl] = useState("");
+
+  useEffect(() => {
+    setCurrentUrl(window.location.href);
+  }, []);
 
   // Build display attributes: prefer attributes array, fallback to legacy
   const displayAttrs = (product.attributes && product.attributes.length > 0)
@@ -65,17 +121,18 @@ export function ProductDetailClient({ product }: { product: Product }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Product Image */}
+        {/* Product Image Gallery */}
         <div className="relative">
+          {/* Main image */}
           <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gradient-to-br from-primary-light to-pink-100 flex items-center justify-center relative">
-            {product.images && product.images.length > 0 ? (
+            {allImages.length > 0 ? (
               <Image
-                src={product.images[0]}
+                src={allImages[selectedImage]}
                 alt={product.name}
                 fill
                 priority
                 loader={cloudinaryLoader}
-                className="object-cover"
+                className="object-cover transition-opacity duration-300"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             ) : (
@@ -89,6 +146,33 @@ export function ProductDetailClient({ product }: { product: Product }) {
               </div>
             )}
           </div>
+
+          {/* Thumbnails */}
+          {allImages.length > 1 && (
+            <div className="flex gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              {allImages.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(i)}
+                  onMouseEnter={() => setSelectedImage(i)}
+                  className={`flex-shrink-0 w-16 h-20 md:w-20 md:h-24 rounded-lg overflow-hidden border-2 transition-all ${
+                    selectedImage === i
+                      ? "border-primary shadow-md shadow-primary/20"
+                      : "border-transparent hover:border-gray-300"
+                  }`}
+                >
+                  <Image
+                    src={img}
+                    alt={`${product.name} - ${i + 1}`}
+                    width={80}
+                    height={100}
+                    loader={cloudinaryLoader}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
 
           {discount && <span className="badge-discount text-base px-3 py-1">-{discount}%</span>}
 
@@ -178,7 +262,7 @@ export function ProductDetailClient({ product }: { product: Product }) {
               }`}
               id="add-to-cart-btn"
             >
-              {addedToCart ? "✓ AJOUTÉ AU PANIER" : "AJOUTER AU PANIER"}
+              {addedToCart ? "AJOUTÉ AU PANIER" : "AJOUTER AU PANIER"}
             </button>
           </div>
 
@@ -200,7 +284,7 @@ export function ProductDetailClient({ product }: { product: Product }) {
 
           {/* WhatsApp share */}
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`Regarde ce produit : ${product.name} à ${formatPrice(product.price)} sur SHEIN Outlet ! ${typeof window !== "undefined" ? window.location.href : ""}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`Regarde ce produit : ${product.name} à ${formatPrice(product.price)} sur SHEIN Outlet ! ${currentUrl}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 flex items-center justify-center gap-2 py-3 rounded-xl bg-whatsapp/10 text-whatsapp font-medium text-sm hover:bg-whatsapp/20 transition-colors"
@@ -212,6 +296,9 @@ export function ProductDetailClient({ product }: { product: Product }) {
           </a>
         </div>
       </div>
+
+      {/* Related Products */}
+      <RelatedProducts products={relatedProducts} />
     </div>
   );
 }

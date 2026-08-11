@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import type { Product, Category, CategoryAttributeTemplate, ProductAttribute } from "@/lib/types";
 
 /* ══════════════════════════════════════════════════════════ */
@@ -84,38 +85,73 @@ function MediaUploader({
     onChange(images.filter((_, i) => i !== index));
   }
 
+  function handleImageDragEnd(result: DropResult) {
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    const reordered = Array.from(images);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    onChange(reordered);
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         Photos & Vidéos du produit
       </label>
 
-      {/* Existing images preview */}
+      {/* Existing images preview with drag & drop */}
       {images.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          {images.map((url, i) => (
-            <div key={i} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-              {url.includes("/video/") ? (
-                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={url} alt="" className="w-full h-full object-cover" />
-              )}
-              <button
-                type="button"
-                onClick={() => removeImage(i)}
-                className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+        <DragDropContext onDragEnd={handleImageDragEnd}>
+          <Droppable droppableId="product-images" direction="horizontal">
+            {(provided) => (
+              <div
+                className="flex flex-wrap gap-2 mb-3"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
               >
-                
-              </button>
-              <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                {i + 1}
-              </span>
-            </div>
-          ))}
-        </div>
+                {images.map((url, i) => (
+                  <Draggable key={`img-${i}-${url}`} draggableId={`img-${i}-${url}`} index={i}>
+                    {(dragProvided, snapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        {...dragProvided.dragHandleProps}
+                        className={`relative group w-20 h-20 rounded-lg overflow-hidden border bg-gray-50 cursor-grab active:cursor-grabbing transition-all ${
+                          snapshot.isDragging
+                            ? "ring-2 ring-pink-400 shadow-lg opacity-90 scale-105"
+                            : "border-gray-200 hover:border-pink-300"
+                        } ${i === 0 ? "ring-2 ring-pink-500" : ""}`}
+                      >
+                        {url.includes("/video/") ? (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                          className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                        >
+                          x
+                        </button>
+                        <span className={`absolute bottom-0 left-0 right-0 text-white text-[8px] text-center py-0.5 transition-opacity ${
+                          i === 0 ? "bg-pink-500 opacity-100 font-bold" : "bg-black/50 opacity-0 group-hover:opacity-100"
+                        }`}>
+                          {i === 0 ? "Principale" : i + 1}
+                        </span>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
 
       {/* Drop zone */}
@@ -255,6 +291,12 @@ function ProductModal({
   });
 
   const [attributes, setAttributes] = useState<ProductAttribute[]>(getInitialAttributes());
+  // Raw text state for attribute values input (so commas can be typed freely)
+  const [rawAttrValues, setRawAttrValues] = useState<Record<number, string>>(() => {
+    const init: Record<number, string> = {};
+    getInitialAttributes().forEach((a, i) => { init[i] = a.values.join(", "); });
+    return init;
+  });
 
   // Category data
   const parentCategories = categories.filter((c) => !c.parent_id);
@@ -291,23 +333,40 @@ function ProductModal({
   // Attribute helpers
   function addAttribute(label: string = "", values: string[] = []) {
     setAttributes([...attributes, { label, values }]);
+    setRawAttrValues((prev) => ({ ...prev, [attributes.length]: values.join(", ") }));
   }
 
   function removeAttribute(index: number) {
     setAttributes(attributes.filter((_, i) => i !== index));
+    // Rebuild raw values map with corrected indices
+    setRawAttrValues((prev) => {
+      const next: Record<number, string> = {};
+      let j = 0;
+      for (let i = 0; i < attributes.length; i++) {
+        if (i === index) continue;
+        next[j] = prev[i] ?? attributes[i].values.join(", ");
+        j++;
+      }
+      return next;
+    });
   }
 
   function updateAttributeLabel(index: number, label: string) {
     setAttributes(attributes.map((a, i) => i === index ? { ...a, label } : a));
   }
 
-  function updateAttributeValues(index: number, valuesStr: string) {
-    const values = valuesStr.split(",").map((v) => v.trim()).filter(Boolean);
+  function updateAttributeValues(index: number, rawStr: string) {
+    setRawAttrValues((prev) => ({ ...prev, [index]: rawStr }));
+  }
+
+  function commitAttributeValues(index: number) {
+    const raw = rawAttrValues[index] ?? "";
+    const values = raw.split(",").map((v) => v.trim()).filter(Boolean);
     setAttributes(attributes.map((a, i) => i === index ? { ...a, values } : a));
   }
 
   function getAttributeValuesStr(index: number): string {
-    return attributes[index]?.values.join(", ") || "";
+    return rawAttrValues[index] ?? attributes[index]?.values.join(", ") ?? "";
   }
 
   // Check if a template is already applied
@@ -361,6 +420,16 @@ function ProductModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Commit any raw attribute values that haven't been blurred yet
+    const committedAttrs = attributes.map((a, i) => {
+      const raw = rawAttrValues[i];
+      if (raw !== undefined) {
+        const values = raw.split(",").map((v) => v.trim()).filter(Boolean);
+        return { ...a, values };
+      }
+      return a;
+    });
     const slug =
       form.slug ||
       form.name
@@ -369,7 +438,7 @@ function ProductModal({
         .replace(/(^-|-$)/g, "");
 
     // Build legacy sizes/colors from attributes for backward compat
-    const cleanAttrs = attributes.filter((a) => a.label.trim() && a.values.length > 0);
+    const cleanAttrs = committedAttrs.filter((a) => a.label.trim() && a.values.length > 0);
     const sizesAttr = cleanAttrs.find((a) => {
       const l = a.label.toLowerCase();
       return l.includes("taille") || l.includes("size") || l.includes("pointure") || l.includes("stockage") || l.includes("capacit");
@@ -575,6 +644,7 @@ function ProductModal({
                       type="text"
                       value={getAttributeValuesStr(idx)}
                       onChange={(e) => updateAttributeValues(idx, e.target.value)}
+                      onBlur={() => commitAttributeValues(idx)}
                       placeholder="Valeurs séparées par virgules (ex: 128GB, 256GB, 1TB)"
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
                     />
@@ -645,7 +715,7 @@ function ProductModal({
             </label>
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <Toggle enabled={form.is_best_seller} onChange={() => setForm({ ...form, is_best_seller: !form.is_best_seller })} />
-              Best-seller
+              Meilleures ventes
             </label>
           </div>
 
@@ -969,7 +1039,7 @@ export default function AdminProducts() {
               <span className="px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200">Flash</span>
             )}
             {filters.bestSellerOnly && (
-              <span className="px-2.5 py-1 rounded-lg bg-green-50 text-green-700 text-xs font-medium border border-green-200">Best-seller</span>
+              <span className="px-2.5 py-1 rounded-lg bg-green-50 text-green-700 text-xs font-medium border border-green-200">Meilleures ventes</span>
             )}
             <button onClick={resetFilters} className="text-xs text-gray-400 hover:text-red-500 transition-colors ml-1" title="Réinitialiser">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1111,7 +1181,7 @@ export default function AdminProducts() {
                     >
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${draftFilters.bestSellerOnly ? "translate-x-6" : "translate-x-1"}`} />
                     </button>
-                    Best-seller
+                    Meilleures ventes
                   </label>
                 </div>
               </div>

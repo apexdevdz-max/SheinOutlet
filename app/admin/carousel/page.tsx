@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
 import { toast } from "@/lib/store/useToastStore";
 import { ImageCropEditor } from "@/components/admin/ImageCropEditor";
 import type { Banner, Category } from "@/lib/types";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 
 /* ══════════════════════════════════════════════════════════ */
 /*  Link Selector Component                                  */
@@ -248,18 +249,13 @@ export default function AdminCarousel() {
     setModal({ open: false, banner: null });
   }
 
-  // Reorder helpers
-  function moveUp(index: number) {
-    if (index === 0) return;
-    const updated = [...banners];
-    [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-    reorderBanners(updated.map((b, i) => ({ ...b, display_order: i + 1 })));
-  }
-
-  function moveDown(index: number) {
-    if (index >= banners.length - 1) return;
-    const updated = [...banners];
-    [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+  // Drag & drop reorder
+  function handleDragEnd(result: DropResult) {
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    const updated = Array.from(banners);
+    const [moved] = updated.splice(result.source.index, 1);
+    updated.splice(result.destination.index, 0, moved);
     reorderBanners(updated.map((b, i) => ({ ...b, display_order: i + 1 })));
   }
 
@@ -287,112 +283,119 @@ export default function AdminCarousel() {
         </button>
       </div>
 
-      {/* Banner Cards */}
-      <div className="space-y-3">
-        {banners.map((banner, index) => (
-          <div
-            key={banner.id}
-            className={`bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all ${
-              banner.is_active ? "border-gray-100" : "border-dashed border-gray-200 opacity-60"
-            }`}
-          >
-            <div className="flex items-stretch">
-              {/* Miniature */}
-              <div className="relative w-44 md:w-56 flex-shrink-0 bg-gray-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={banner.image_url}
-                  alt={banner.title}
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-2 left-2 w-6 h-6 rounded-md bg-black/60 text-white text-[10px] font-bold flex items-center justify-center backdrop-blur-sm">
-                  {index + 1}
-                </span>
-                {!banner.is_active && (
-                  <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-                    <span className="px-2 py-1 rounded-lg bg-gray-800/80 text-white text-[10px] font-bold">INACTIF</span>
-                  </div>
-                )}
-              </div>
+      {/* Banner Cards with DnD */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="banners-list">
+          {(provided) => (
+            <div className="space-y-3" ref={provided.innerRef} {...provided.droppableProps}>
+              {banners.map((banner, index) => (
+                <Draggable key={banner.id} draggableId={banner.id} index={index}>
+                  {(dragProvided, snapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      className={`bg-white rounded-2xl border overflow-hidden transition-all ${
+                        snapshot.isDragging ? "shadow-xl ring-2 ring-pink-300" : "shadow-sm hover:shadow-md"
+                      } ${
+                        banner.is_active ? "border-gray-100" : "border-dashed border-gray-200 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-stretch">
+                        {/* Drag handle */}
+                        <div
+                          {...dragProvided.dragHandleProps}
+                          className="w-10 flex-shrink-0 flex flex-col items-center justify-center gap-[3px] cursor-grab active:cursor-grabbing bg-gray-50 border-r border-gray-100 text-gray-300 hover:text-gray-500"
+                          title="Glisser pour réordonner"
+                        >
+                          <span className="block w-4 h-0.5 bg-current rounded-full" />
+                          <span className="block w-4 h-0.5 bg-current rounded-full" />
+                          <span className="block w-4 h-0.5 bg-current rounded-full" />
+                        </div>
 
-              {/* Info */}
-              <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
-                <div>
-                  <h3 className="font-bold text-gray-900 truncate">{banner.title || "Sans titre"}</h3>
-                  {banner.subtitle && (
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{banner.subtitle}</p>
+                        {/* Miniature */}
+                        <div className="relative w-44 md:w-56 flex-shrink-0 bg-gray-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={banner.image_url}
+                            alt={banner.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute top-2 left-2 w-6 h-6 rounded-md bg-black/60 text-white text-[10px] font-bold flex items-center justify-center backdrop-blur-sm">
+                            {index + 1}
+                          </span>
+                          {!banner.is_active && (
+                            <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                              <span className="px-2 py-1 rounded-lg bg-gray-800/80 text-white text-[10px] font-bold">INACTIF</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+                          <div>
+                            <h3 className="font-bold text-gray-900 truncate">{banner.title || "Sans titre"}</h3>
+                            {banner.subtitle && (
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">{banner.subtitle}</p>
+                            )}
+                            <p className="text-xs text-gray-400 mt-1">
+                              <span className="inline-flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                                {banner.href}
+                              </span>
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-3">
+                            {/* Toggle active */}
+                            <button
+                              onClick={() => toggleActive(banner)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                banner.is_active
+                                  ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                              }`}
+                            >
+                              {banner.is_active ? "Actif" : "Inactif"}
+                            </button>
+
+                            <div className="flex-1" />
+
+                            {/* Edit */}
+                            <button
+                              onClick={() => openModal(banner)}
+                              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-blue-500 hover:bg-blue-50"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            </button>
+
+                            {/* Delete */}
+                            {deleteConfirm === banner.id ? (
+                              <button
+                                onClick={() => { deleteBanner(banner.id); setDeleteConfirm(null); }}
+                                className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold"
+                              >
+                                Confirmer
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setDeleteConfirm(banner.id)}
+                                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-red-400 hover:bg-red-50"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">
-                    <span className="inline-flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                      {banner.href}
-                    </span>
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 mt-3">
-                  {/* Toggle active */}
-                  <button
-                    onClick={() => toggleActive(banner)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      banner.is_active
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                    }`}
-                  >
-                    {banner.is_active ? "✓ Actif" : "Inactif"}
-                  </button>
-
-                  {/* Reorder */}
-                  <div className="flex gap-0.5">
-                    <button
-                      onClick={() => moveUp(index)}
-                      disabled={index === 0}
-                      className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-pink-500 disabled:opacity-20"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                    </button>
-                    <button
-                      onClick={() => moveDown(index)}
-                      disabled={index >= banners.length - 1}
-                      className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-pink-500 disabled:opacity-20"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </div>
-
-                  <div className="flex-1" />
-
-                  {/* Edit */}
-                  <button
-                    onClick={() => openModal(banner)}
-                    className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-blue-500 hover:bg-blue-50"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                  </button>
-
-                  {/* Delete */}
-                  {deleteConfirm === banner.id ? (
-                    <button
-                      onClick={() => { deleteBanner(banner.id); setDeleteConfirm(null); }}
-                      className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold"
-                    >
-                      Confirmer
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setDeleteConfirm(banner.id)}
-                      className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-red-400 hover:bg-red-50"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                  )}
-                </div>
-              </div>
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {banners.length === 0 && (
         <div className="text-center py-16 text-gray-400">

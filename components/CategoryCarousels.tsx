@@ -69,7 +69,7 @@ function CarouselRow({ row }: { row: CategoryRow }) {
       </div>
 
       {/* Carousel with arrows */}
-      <div className="relative group">
+      <div className="relative">
         <ScrollArrow direction="left" onClick={() => scroll("left")} />
         <ScrollArrow direction="right" onClick={() => scroll("right")} />
 

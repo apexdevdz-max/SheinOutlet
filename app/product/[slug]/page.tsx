@@ -1,4 +1,4 @@
-import { getProductBySlug, getAllProductSlugs } from "@/lib/supabase-data";
+import { getProductBySlug, getAllProductSlugs, getRelatedProducts } from "@/lib/supabase-data";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -88,10 +88,12 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  const relatedProducts = await getRelatedProducts(product, 8);
+
   return (
     <>
       <ProductJsonLd product={product} />
-      <ProductDetailClient product={product} />
+      <ProductDetailClient product={product} relatedProducts={relatedProducts} />
     </>
   );
 }

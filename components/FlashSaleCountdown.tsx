@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 function TimeBlock({ value, label }: { value: number; label: string }) {
@@ -26,6 +27,7 @@ export function FlashSaleCountdown() {
   const [campaign, setCampaign] = useState<CampaignData | null>(null);
   const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   // Fetch active campaign
   useEffect(() => {
@@ -95,14 +97,16 @@ export function FlashSaleCountdown() {
           <TimeBlock value={time.seconds} label="Sec" />
         </div>
 
-        {/* CTA */}
-        <Link
-          href="/promotions"
-          className="bg-primary hover:bg-primary-dark text-white text-sm font-bold px-6 py-2.5 rounded-full transition-all hover:shadow-lg hover:shadow-primary/30 whitespace-nowrap"
-          id="flash-sale-cta"
-        >
-          VOIR TOUTES LES OFFRES &rsaquo;
-        </Link>
+        {/* CTA — hidden when already on /promotions */}
+        {pathname !== "/promotions" && (
+          <Link
+            href="/promotions"
+            className="bg-primary hover:bg-primary-dark text-white text-sm font-bold px-6 py-2.5 rounded-full transition-all hover:shadow-lg hover:shadow-primary/30 whitespace-nowrap"
+            id="flash-sale-cta"
+          >
+            VOIR TOUTES LES OFFRES &rsaquo;
+          </Link>
+        )}
       </div>
     </div>
   );

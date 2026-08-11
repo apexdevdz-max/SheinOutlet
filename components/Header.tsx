@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
 import { SearchBar } from "./SearchBar";
-import { MegaMenu } from "./MegaMenu";
 import { useState, useEffect } from "react";
 import type { Category } from "@/lib/types";
 
@@ -15,8 +14,8 @@ export function Header() {
 
   const cartCount = useStore((s) => s.getCartCount());
   const favCount = useStore((s) => s.getFavoritesCount());
-  const [hoveredCat, setHoveredCat] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
   const [headerCategories, setHeaderCategories] = useState<Category[]>([]);
 
@@ -28,6 +27,7 @@ export function Header() {
   const activeFilter = searchParams.get("filter");
 
   useEffect(() => {
+    setMounted(true);
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -151,14 +151,14 @@ export function Header() {
             <Link href="/favorites" className={`flex flex-col items-center transition-colors relative ${iconColor}`} id="header-favorites">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
               <span className="text-xs mt-0.5">Favoris</span>
-              {favCount > 0 && (
+              {mounted && favCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{favCount}</span>
               )}
             </Link>
             <Link href="/cart" className={`flex flex-col items-center transition-colors relative ${iconColor}`} id="header-cart">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
               <span className="text-xs mt-0.5">Panier</span>
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>
               )}
             </Link>
@@ -176,8 +176,6 @@ export function Header() {
                 <li
                   key={link.label}
                   className="relative"
-                  onMouseEnter={() => link.slug && setHoveredCat(link.slug)}
-                  onMouseLeave={() => setHoveredCat(null)}
                 >
                   <Link
                     href={link.href}
@@ -193,9 +191,6 @@ export function Header() {
                   >
                     {link.label}
                   </Link>
-                  {link.slug && hoveredCat === link.slug && (
-                    <MegaMenu categorySlug={link.slug} />
-                  )}
                 </li>
               );
             })}

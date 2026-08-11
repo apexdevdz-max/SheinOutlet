@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -12,6 +12,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { Footer } from "@/components/Footer";
 import type { Product, Category } from "@/lib/types";
 import { useStore } from "@/lib/store/useStore";
+import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
 
 /* ──── SVG icons for category bubbles ──── */
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -90,17 +91,14 @@ function HomeContent() {
 
   const parentCats = categories.filter((c) => !c.parent_id);
 
-  /* ── Auto-scroll to category title on desktop when category is selected ── */
+  /* ── Auto-scroll to products section when category/subcategory is selected ── */
   useEffect(() => {
     if (isFiltered && productsRef.current) {
-      const isMobile = window.innerWidth < 768;
-      if (!isMobile) {
-        setTimeout(() => {
-          productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
-      }
+      setTimeout(() => {
+        productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
-  }, [activeCat, activeFilter, isFiltered]);
+  }, [activeCat, activeFilter, activeSubcat, isFiltered]);
 
   /* ── Compute product lists based on active filter ── */
   // Helper: get products for a category slug (parent + sub-cats)
@@ -307,35 +305,31 @@ function HomeContent() {
         </section>
       )}
 
-      {/* ─── Filtered Products Grid ─── */}
-      {isFiltered && (bestSellersGrid.length > 0 || flashGrid.length > 0) && (
+      {/* ─── Filtered Products Grid with Filter Sidebar ─── */}
+      {isFiltered && bestSellers.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-6">
-          {/* Flash sale products for this category */}
-          {flashGrid.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-                <span className="text-lg"></span> Ventes Flash
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {flashGrid.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            </div>
-          )}
-          {/* Best sellers / all products for this category */}
-          {bestSellersGrid.length > 0 && (
-            <div>
-              <h3 className="text-base font-bold text-text mb-4">
-                {activeCat ? "Tous les produits" : activeFilter === "new" ? "Nouveautés" : "Promotions"}
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {bestSellersGrid.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            </div>
-          )}
+          <ProductFilterSidebar products={bestSellers}>
+            {(filtered) => (
+              <>
+                {filtered.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4">
+                    {filtered.map((p) => (
+                      <ProductCard key={p.id} product={p} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-500">Aucun produit ne correspond aux filtres.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </ProductFilterSidebar>
         </section>
       )}
 

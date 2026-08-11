@@ -43,7 +43,7 @@ export default function AdminDashboard() {
       bg: "bg-pink-50",
     },
     {
-      label: "Best-sellers",
+      label: "Meilleures ventes",
       value: bestSellers,
       icon: "best",
       color: "from-emerald-500 to-emerald-600",

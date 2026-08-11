@@ -18,14 +18,28 @@ export function ProductCard({ product }: { product: Product }) {
       <Link href={`/product/${product.slug}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-50">
         <div className="w-full h-full bg-gradient-to-br from-primary-light to-pink-100 flex items-center justify-center relative">
           {product.images && product.images.length > 0 ? (
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              loader={cloudinaryLoader}
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 180px"
-            />
+            <>
+              {/* Primary image */}
+              <Image
+                src={product.images[0]}
+                alt={product.name}
+                fill
+                loader={cloudinaryLoader}
+                className={`object-cover transition-all duration-500 ${product.images.length > 1 ? "group-hover:opacity-0" : "group-hover:scale-105"}`}
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 180px"
+              />
+              {/* Hover image (second image) */}
+              {product.images.length > 1 && (
+                <Image
+                  src={product.images[1]}
+                  alt={`${product.name} - vue 2`}
+                  fill
+                  loader={cloudinaryLoader}
+                  className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 180px"
+                />
+              )}
+            </>
           ) : (
             <div className="text-center p-4">
               <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-white/60 flex items-center justify-center">

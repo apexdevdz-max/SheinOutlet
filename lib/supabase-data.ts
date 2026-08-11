@@ -19,9 +19,9 @@ async function getMockFallback() {
 
 // ── Column selections (never select *) ──
 const PRODUCT_LIST_COLUMNS =
-  "id, name, slug, price, old_price, images, category_id, sizes, colors, is_flash_sale, is_best_seller, stock, created_at";
+  "id, name, slug, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at";
 const PRODUCT_DETAIL_COLUMNS =
-  "id, name, slug, description, price, old_price, images, category_id, sizes, colors, is_flash_sale, is_best_seller, stock, created_at";
+  "id, name, slug, description, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at";
 const CATEGORY_COLUMNS =
   "id, name, slug, image_url, parent_id, show_in_header, display_order";
 
@@ -195,6 +195,25 @@ export async function getAllProductSlugs(): Promise<string[]> {
     console.error("[supabase-data] getAllProductSlugs error:", err);
     const mock = await getMockFallback();
     if (mock) return mock.MOCK_PRODUCTS.map((p) => p.slug);
+    return [];
+  }
+}
+
+export async function getRelatedProducts(product: { id: string; category_id: string | null }, limit = 8): Promise<Product[]> {
+  if (!product.category_id) return [];
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(PRODUCT_LIST_COLUMNS)
+      .eq("category_id", product.category_id)
+      .neq("id", product.id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data as Product[]) || [];
+  } catch (err) {
+    console.error("[supabase-data] getRelatedProducts error:", err);
     return [];
   }
 }
