@@ -128,7 +128,7 @@ export function MobileHeader() {
               <img
                 src="/logoShein.png"
                 alt="SHEIN outlet"
-                className={`h-7 w-auto transition-all duration-300 ${
+                className={`w-28 h-auto transition-all duration-300 ${
                   scrolled ? "" : "brightness-0 invert drop-shadow-sm"
                 }`}
               />
@@ -137,17 +137,6 @@ export function MobileHeader() {
 
           {/* Right: Contact + Favorites + Cart (icons only) */}
           <div className="flex items-center justify-end gap-0.5">
-            {/* Contact icon */}
-            <Link
-              href="#footer"
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${iconColor}`}
-              aria-label="Contact"
-            >
-              <svg className="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75c1.66 0 3.225-.415 4.594-1.148l3.72.93a.75.75 0 00.908-.909l-.93-3.72A9.713 9.713 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75z" />
-              </svg>
-            </Link>
             {/* Favorites */}
             <Link
               href="/favorites"
@@ -257,6 +246,14 @@ export function MobileHeader() {
                   </Link>
                 );
               })}
+              {/* Contact Us */}
+              <Link
+                href="#footer"
+                onClick={() => setMenuOpen(false)}
+                className="block px-5 py-3.5 text-sm font-semibold transition-colors border-t border-gray-200 mt-2 text-gray-800 hover:text-primary hover:bg-gray-50"
+              >
+                Contact Us
+              </Link>
             </nav>
           </div>
         </div>

@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       subtitle: body.subtitle || "",
       href: body.href || "/",
       is_active: body.is_active ?? true,
+      show_text: body.show_text ?? true,
       display_order: body.display_order || 0,
     })
     .select()
