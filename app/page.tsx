@@ -171,6 +171,9 @@ function HomeContent() {
       {/* ─── Hero Carousel (always visible / persistent) ─── */}
       <HeroCarousel />
 
+      {/* ─── Main Content Wrapper (with lateral margins, Header/Footer excluded) ─── */}
+      <div className="px-4 sm:px-6 lg:px-12 xl:px-20">
+
       {/* ─── Category Cards Carousel ─── */}
       {!isFiltered && parentCats.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-6 relative">
@@ -396,6 +399,8 @@ function HomeContent() {
           </div>
         </section>
       )}
+
+      </div>{/* end main content wrapper */}
 
       {/* ─── Footer ─── */}
       <Footer />

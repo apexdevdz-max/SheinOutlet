@@ -1,20 +1,17 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-950 text-white pt-12 pb-20 md:pb-4" id="footer">
+    <footer className="bg-gray-950 text-white pt-12 pb-4" id="footer">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 pb-10 border-b border-white/10">
           {/* Col 1: À propos */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4">
-              <span className="text-2xl font-black tracking-tight">
-                SHEIN <span className="text-primary italic">outlet</span>
-                <span className="text-primary text-xs align-super"></span>
-              </span>
+              <img src="/logoShein.png" alt="SHEIN outlet" className="h-8 w-auto brightness-0 invert" />
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               Votre destination mode en Algérie. Des milliers d&apos;articles tendance à prix

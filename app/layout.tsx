@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { BottomNav } from "@/components/BottomNav";
+
 import { Header } from "@/components/Header";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { MainContent } from "@/components/MainContent";
@@ -42,7 +42,7 @@ export default function RootLayout({
           <Header />
         </Suspense>
         <MainContent>{children}</MainContent>
-        <BottomNav />
+
         <WhatsAppButton />
       </body>
     </html>

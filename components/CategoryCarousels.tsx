@@ -12,35 +12,21 @@ interface CategoryRow {
   icon?: string;
 }
 
-/* ── Arrow Button ── */
-function ScrollArrow({ direction, onClick }: { direction: "left" | "right"; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow-lg border border-gray-200 items-center justify-center text-gray-600 hover:text-primary hover:border-primary/30 transition-all hover:shadow-xl ${
-        direction === "left" ? "left-1" : "right-1"
-      }`}
-      aria-label={direction === "left" ? "Précédent" : "Suivant"}
-    >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2.5}
-          d={direction === "left" ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"}
-        />
-      </svg>
-    </button>
-  );
-}
-
 /* ── Single Carousel Row ── */
 function CarouselRow({ row }: { row: CategoryRow }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const GAP = 12; // gap-3 = 12px
+
+  function getCardWidth() {
+    if (!scrollRef.current) return 250;
+    const containerWidth = scrollRef.current.clientWidth;
+    return (containerWidth - GAP * 3) / 4;
+  }
 
   function scroll(direction: "left" | "right") {
     if (!scrollRef.current) return;
-    const amount = scrollRef.current.clientWidth * 0.75;
+    const cardWidth = getCardWidth();
+    const amount = cardWidth + GAP;
     scrollRef.current.scrollBy({
       left: direction === "left" ? -amount : amount,
       behavior: "smooth",
@@ -51,40 +37,66 @@ function CarouselRow({ row }: { row: CategoryRow }) {
 
   return (
     <section className="max-w-7xl mx-auto">
-      {/* Header */}
+      {/* Header: mobile = title left + "Voir tout" right; desktop = title + "Voir tout" left, arrows right */}
       <div className="flex items-center justify-between px-4 mb-3">
-        <h2 className="text-sm md:text-base font-black text-text flex items-center gap-1.5">
-          {row.icon && <span>{row.icon}</span>}
-          {row.title}
-        </h2>
-        <Link
-          href={row.href}
-          className="text-xs md:text-sm text-text-light hover:text-primary transition-colors flex items-center gap-1 font-medium"
-        >
-          Voir tout
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
+        <div className="flex items-center gap-3">
+          <h2 className="text-base md:text-lg font-black text-text flex items-center gap-1.5">
+            {row.icon && <span>{row.icon}</span>}
+            {row.title}
+          </h2>
+          {/* "Voir tout" next to title on desktop only */}
+          <Link
+            href={row.href}
+            className="hidden md:inline text-sm text-text hover:text-primary transition-colors font-medium underline underline-offset-2"
+          >
+            Voir tout
+          </Link>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* "Voir tout" on the right on mobile only */}
+          <Link
+            href={row.href}
+            className="md:hidden text-xs text-text font-semibold hover:text-primary transition-colors"
+          >
+            Voir tout
+          </Link>
+          <button
+            onClick={() => scroll("left")}
+            className="hidden md:flex w-8 h-8 rounded-full border border-gray-300 items-center justify-center text-gray-500 hover:text-primary hover:border-primary/40 transition-all bg-white"
+            aria-label="Precedent"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            className="hidden md:flex w-8 h-8 rounded-full border border-gray-300 bg-gray-900 items-center justify-center text-white hover:bg-primary transition-all"
+            aria-label="Suivant"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Carousel with arrows */}
-      <div className="relative">
-        <ScrollArrow direction="left" onClick={() => scroll("left")} />
-        <ScrollArrow direction="right" onClick={() => scroll("right")} />
-
+      {/* Carousel - overflow hidden on desktop, visible scroll on mobile */}
+      <div className="md:overflow-hidden md:px-4">
         <div
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory"
+          className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory pl-4 md:pl-0"
         >
           {row.products.map((product) => (
             <div
               key={product.id}
-              className="flex-shrink-0 w-[140px] md:w-[180px] snap-start"
+              className="flex-shrink-0 w-[75vw] md:w-[calc((100%-36px)/4)] snap-start"
             >
               <ProductCard product={product} />
             </div>
           ))}
+          {/* Right padding spacer for mobile scroll */}
+          <div className="flex-shrink-0 w-4 md:hidden" aria-hidden="true" />
         </div>
       </div>
     </section>
