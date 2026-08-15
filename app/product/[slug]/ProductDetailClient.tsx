@@ -91,6 +91,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
   const fav = isFavorite(product.id);
 
   const handleAddToCart = () => {
+    if (product.stock <= 0) return; // Guard: prevent adding out-of-stock products
     // Pass first attribute as "size" and second as "color" for backward compat
     const selectedSize = selections[displayAttrs[0]?.label] || "";
     const selectedColor = selections[displayAttrs[1]?.label] || "";
@@ -202,6 +203,16 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
             )}
           </div>
 
+          {/* Out of Stock badge */}
+          {product.stock <= 0 && (
+            <div className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+              <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              <span className="text-red-600 font-bold text-sm">RUPTURE DE STOCK</span>
+            </div>
+          )}
+
           {/* Description */}
           <p className="text-sm text-text-light leading-relaxed mb-6">{product.description}</p>
 
@@ -232,10 +243,11 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
           {/* Quantity */}
           <div className="mb-6">
             <h3 className="text-sm font-bold text-text mb-2">Quantité</h3>
-            <div className="flex items-center gap-0 border border-border rounded-lg w-fit overflow-hidden">
+            <div className={`flex items-center gap-0 border border-border rounded-lg w-fit overflow-hidden ${product.stock <= 0 ? "opacity-40 pointer-events-none" : ""}`}>
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-text-light transition-colors"
+                disabled={product.stock <= 0}
               >
                 −
               </button>
@@ -245,6 +257,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               <button
                 onClick={() => setQuantity(quantity + 1)}
                 className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-text-light transition-colors"
+                disabled={product.stock <= 0}
               >
                 +
               </button>
@@ -255,14 +268,17 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
           <div className="flex gap-3 mt-auto">
             <button
               onClick={handleAddToCart}
+              disabled={product.stock <= 0}
               className={`flex-1 py-4 rounded-xl font-bold text-base transition-all ${
-                addedToCart
-                  ? "bg-success text-white"
-                  : "bg-black text-white hover:bg-gray-800 hover:shadow-xl"
+                product.stock <= 0
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : addedToCart
+                    ? "bg-success text-white"
+                    : "bg-black text-white hover:bg-gray-800 hover:shadow-xl"
               }`}
               id="add-to-cart-btn"
             >
-              {addedToCart ? "AJOUTÉ AU PANIER" : "AJOUTER AU PANIER"}
+              {product.stock <= 0 ? "INDISPONIBLE" : addedToCart ? "AJOUTÉ AU PANIER" : "AJOUTER AU PANIER"}
             </button>
           </div>
 

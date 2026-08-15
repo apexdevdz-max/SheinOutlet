@@ -171,43 +171,96 @@ export function MobileHeader() {
         </div>
       </div>
 
-      {/* ── Search overlay (fullscreen) ── */}
+      {/* ── Search overlay (fullscreen premium) ── */}
       {searchOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white animate-fade-in">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col">
+          {/* Blurred backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+          />
+
+          {/* Content */}
+          <div className="relative z-10 w-full px-5 pt-16 animate-fade-in-up">
+            {/* Close button */}
             <button
-              onClick={() => setSearchOpen(false)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-text hover:bg-gray-100"
+              onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
+              aria-label="Fermer"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <form onSubmit={handleSearch} className="flex-1 flex">
-              <input
-                ref={searchInputRef}
-                type="text"
-                autoFocus
-                placeholder="Rechercher un produit..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 pl-3 pr-2 py-2.5 bg-gray-50 border border-border rounded-l-full text-sm outline-none focus:border-primary/40"
+
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logoShein.png"
+                alt="SHEIN outlet"
+                className="h-8 w-auto brightness-0 invert drop-shadow-lg"
               />
-              <button
-                type="submit"
-                className="px-4 bg-[#ff4a79] text-white rounded-r-full flex items-center justify-center shrink-0"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
+            </div>
+
+            {/* Search bar */}
+            <form onSubmit={handleSearch}>
+              <div className="flex items-center bg-white rounded-2xl shadow-lg px-5 py-1">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  autoFocus
+                  placeholder="Rechercher un produit"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 py-3 text-sm text-gray-800 placeholder-gray-400 bg-transparent appearance-none"
+                  style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                />
+                {/* Right icons group: clear + submit */}
+                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="w-8 h-8 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="w-9 h-9 rounded-full text-gray-500 hover:text-primary hover:bg-pink-50 transition-colors flex items-center justify-center"
+                    aria-label="Rechercher"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </form>
-          </div>
-          <div className="px-6 py-8 text-center text-text-muted text-sm">
-            <svg className="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            Tapez pour rechercher parmi nos produits
+
+            {/* Popular searches */}
+            <div className="mt-6">
+              <p className="text-white/40 text-[10px] font-medium uppercase tracking-widest mb-2.5">Recherches populaires</p>
+              <div className="flex flex-wrap gap-2">
+                {["Robes", "Sacs", "Chaussures", "T-shirts", "Accessoires", "Nouveautés"].map((term) => (
+                  <button
+                    key={term}
+                    onClick={() => {
+                      router.push(`/search?q=${encodeURIComponent(term)}`);
+                      setSearchOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className="px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-xs font-medium hover:bg-white/20 hover:text-white transition-all border border-white/10"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

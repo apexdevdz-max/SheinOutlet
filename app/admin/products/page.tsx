@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { ImageCropEditor } from "@/components/admin/ImageCropEditor";
 import type { Product, Category, CategoryAttributeTemplate, ProductAttribute } from "@/lib/types";
 
 /* ══════════════════════════════════════════════════════════ */
@@ -30,6 +31,8 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void 
 /*  Media Uploader Component                                 */
 /* ══════════════════════════════════════════════════════════ */
 
+const PRODUCT_ASPECT_RATIO = 3 / 4; // Portrait 3:4 — matches ProductCard display
+
 function MediaUploader({
   images,
   onChange,
@@ -41,15 +44,60 @@ function MediaUploader({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFiles = useCallback(
-    async (files: FileList | File[]) => {
-      const fileArray = Array.from(files);
-      if (fileArray.length === 0) return;
+  // Crop queue state
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
+  // When cropQueue changes, load the next image for cropping
+  useEffect(() => {
+    if (cropQueue.length > 0 && !cropSrc) {
+      const file = cropQueue[0];
+      const reader = new FileReader();
+      reader.onload = () => setCropSrc(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  }, [cropQueue, cropSrc]);
+
+  // Upload a single blob to Cloudinary
+  const uploadBlob = useCallback(
+    async (blob: Blob, filename: string) => {
       setUploading(true);
       try {
         const formData = new FormData();
-        fileArray.forEach((f) => formData.append("files", f));
+        formData.append("files", new File([blob], filename, { type: blob.type }));
+
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.error || "Erreur d'upload");
+          return;
+        }
+
+        const { urls } = await res.json();
+        if (Array.isArray(urls) && urls.length > 0) {
+          onChange([...images, ...urls]);
+        }
+      } catch {
+        alert("Erreur lors de l'upload");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [images, onChange]
+  );
+
+  // Upload raw files directly (for videos)
+  const uploadFilesDirect = useCallback(
+    async (files: File[]) => {
+      if (files.length === 0) return;
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        files.forEach((f) => formData.append("files", f));
 
         const res = await fetch("/api/admin/upload", {
           method: "POST",
@@ -74,6 +122,51 @@ function MediaUploader({
     },
     [images, onChange]
   );
+
+  // Entry point: separate images (→ crop queue) and videos (→ direct upload)
+  const handleFiles = useCallback(
+    (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      if (fileArray.length === 0) return;
+
+      const imageFiles: File[] = [];
+      const videoFiles: File[] = [];
+
+      for (const f of fileArray) {
+        if (f.type.startsWith("video/")) {
+          videoFiles.push(f);
+        } else if (f.type.startsWith("image/")) {
+          imageFiles.push(f);
+        }
+      }
+
+      // Videos: upload immediately without crop
+      if (videoFiles.length > 0) {
+        uploadFilesDirect(videoFiles);
+      }
+
+      // Images: add to crop queue
+      if (imageFiles.length > 0) {
+        setCropQueue((prev) => [...prev, ...imageFiles]);
+      }
+    },
+    [uploadFilesDirect]
+  );
+
+  // After crop: upload the cropped blob, advance queue
+  function handleCropComplete(blob: Blob) {
+    const currentFile = cropQueue[0];
+    const filename = currentFile ? currentFile.name.replace(/\.[^.]+$/, ".webp") : "product.webp";
+    uploadBlob(blob, filename);
+    setCropSrc(null);
+    setCropQueue((prev) => prev.slice(1));
+  }
+
+  // Cancel crop: skip this file, advance queue
+  function handleCropCancel() {
+    setCropSrc(null);
+    setCropQueue((prev) => prev.slice(1));
+  }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
@@ -190,7 +283,10 @@ function MediaUploader({
         multiple
         accept="image/*,video/*"
         className="hidden"
-        onChange={(e) => e.target.files && handleFiles(e.target.files)}
+        onChange={(e) => {
+          if (e.target.files) handleFiles(e.target.files);
+          e.target.value = ""; // Reset so the same file can be re-selected
+        }}
       />
 
       {/* Manual URL input for existing URLs */}
@@ -230,6 +326,16 @@ function MediaUploader({
           </button>
         </div>
       </details>
+
+      {/* ══════════ CROP EDITOR MODAL ══════════ */}
+      {cropSrc && (
+        <ImageCropEditor
+          imageSrc={cropSrc}
+          aspectRatio={PRODUCT_ASPECT_RATIO}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 }
