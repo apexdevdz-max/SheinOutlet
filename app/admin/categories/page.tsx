@@ -5,6 +5,7 @@ import { useAdminStore } from "@/lib/store/useAdminStore";
 import { toast } from "@/lib/store/useToastStore";
 import type { Category, CategoryAttributeTemplate } from "@/lib/types";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { ImageCropModal } from "@/components/admin/ImageCropModal";
 
 /* ── Quick sub-category inline modal ── */
 function QuickAddSub({ parentId, onClose }: { parentId: string; onClose: () => void }) {
@@ -182,6 +183,7 @@ export default function AdminCategories() {
   const [quickAddParent, setQuickAddParent] = useState<string | null>(null);
   const [attrModalCat, setAttrModalCat] = useState<{ id: string; name: string } | null>(null);
   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
+  const [cropModalOpen, setCropModalOpen] = useState(false);
   const initializedRef = useRef(false);
 
   const parentCats = categories.filter((c) => !c.parent_id).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
@@ -527,6 +529,10 @@ export default function AdminCategories() {
                   <div className="relative group">
                     <img src={form.image_url} alt="Aperçu" className="w-full h-40 object-cover rounded-xl border border-gray-100" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-3">
+                      <button type="button" onClick={() => setCropModalOpen(true)} className="px-3 py-1.5 rounded-lg bg-white text-gray-800 text-xs font-semibold flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" /></svg>
+                        Recadrer
+                      </button>
                       <button type="button" onClick={() => fileRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-white text-gray-800 text-xs font-semibold">Changer</button>
                       <button type="button" onClick={() => setForm({ ...form, image_url: "" })} className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold">Supprimer</button>
                     </div>
@@ -623,6 +629,18 @@ export default function AdminCategories() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ══════════════ IMAGE CROP MODAL ══════════════ */}
+      {cropModalOpen && form.image_url && (
+        <ImageCropModal
+          imageUrl={form.image_url}
+          onSave={(newUrl) => {
+            setForm((f) => ({ ...f, image_url: newUrl }));
+            setCropModalOpen(false);
+          }}
+          onClose={() => setCropModalOpen(false)}
+        />
       )}
 
       {/* ══════════════ ATTRIBUTE TEMPLATES MODAL ══════════════ */}

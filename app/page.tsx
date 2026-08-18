@@ -9,7 +9,6 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { CategoryCarousels } from "@/components/CategoryCarousels";
 import { MobileHeader } from "@/components/MobileHeader";
 import { SearchBar } from "@/components/SearchBar";
-import { Footer } from "@/components/Footer";
 import type { Product, Category } from "@/lib/types";
 import { useStore } from "@/lib/store/useStore";
 import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
@@ -74,6 +73,7 @@ function HomeContent() {
   const cartCount = useStore((s) => s.getCartCount());
   const productsRef = useRef<HTMLDivElement>(null);
   const catCarouselRef = useRef<HTMLDivElement>(null);
+  const subcatCarouselRef = useRef<HTMLDivElement>(null);
 
   // Fetch data from Supabase via API
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -168,13 +168,13 @@ function HomeContent() {
       {/* ─── Mobile Header (transparent overlay) ─── */}
       <MobileHeader />
 
-      {/* ─── Hero Carousel (always visible / persistent) ─── */}
-      <HeroCarousel />
+      {/* ─── Hero Carousel (only when no category filter active) ─── */}
+      {!activeCat && <HeroCarousel />}
 
       {/* ─── Main Content Wrapper (with lateral margins, Header/Footer excluded) ─── */}
-      <div className="px-4 sm:px-6 lg:px-12 xl:px-20">
+      <div className={`px-4 sm:px-6 lg:px-12 xl:px-20 ${activeCat ? "pt-24 md:pt-32" : ""}`}>
 
-      {/* ─── Category Cards Carousel ─── */}
+      {/* ─── Category Cards Carousel (homepage only) ─── */}
       {!isFiltered && parentCats.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-6 relative">
           {/* Left arrow */}
@@ -193,13 +193,13 @@ function HomeContent() {
           {/* Scrollable row */}
           <div
             ref={catCarouselRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 pb-2">
+            className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1 pb-2">
 
             {parentCats.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/?cat=${cat.slug}`}
-                className="group relative block rounded-2xl overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300"
+                className="group relative block overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300"
               >
                 {/* Background image */}
                 {cat.image_url ? (
@@ -212,7 +212,7 @@ function HomeContent() {
                   <div className="absolute inset-0 bg-gradient-to-br from-pink-100 to-pink-50" />
                 )}
 
-                {/* Subtle gradient overlay for text readability */}
+                {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
                 {/* Icon circle (top-right) */}
@@ -261,50 +261,105 @@ function HomeContent() {
         </section>
       )}
 
-      {/* ─── Filtered title + subcategory pills (scroll anchor for desktop) ─── */}
-      <div ref={productsRef} style={{ scrollMarginTop: "140px" }} />
-      {isFiltered && (
-        <section className="max-w-7xl mx-auto px-4 pt-4 pb-1">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg md:text-2xl font-black text-text">
-              {activeCat
-                ? parentCats.find((c) => c.slug === activeCat)?.name || activeCat.toUpperCase()
-                : activeFilter === "new"
-                  ? "NOUVEAUTÉS"
-                  : activeFilter === "promo"
-                    ? "PROMOTIONS"
-                    : ""}
-            </h2>
+      {/* ─── Category Title + Subcategory Carousel (when a category is active) ─── */}
+      {activeCat && (
+        <section className="max-w-7xl mx-auto px-4 pt-4 pb-2">
+          {/* Category title */}
+          <h2 className="text-lg md:text-2xl font-black text-text mb-4">
+            {parentCats.find((c) => c.slug === activeCat)?.name || activeCat.toUpperCase()}
+          </h2>
 
-            {/* Subcategory pill filters */}
-            {activeCat && activeSubcats.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide ml-0 md:ml-4">
-                <Link
-                  href={`/?cat=${activeCat}`}
-                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    !activeSubcat
-                      ? "bg-primary text-white shadow-sm"
-                      : "bg-gray-100 text-text-light hover:bg-pink-50 hover:text-primary"
-                  }`}
-                >
-                  Tout
-                </Link>
+          {/* Subcategory cards carousel */}
+          {activeSubcats.length > 0 && (
+            <div className="relative">
+              {/* Left arrow */}
+              <button
+                onClick={() => {
+                  if (subcatCarouselRef.current) subcatCarouselRef.current.scrollBy({ left: -(subcatCarouselRef.current.offsetWidth * 0.7), behavior: "smooth" });
+                }}
+                className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
+                aria-label="Précédent"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Scrollable row */}
+              <div
+                ref={subcatCarouselRef}
+                className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1 pb-2">
+
                 {activeSubcats.map((sub) => (
                   <Link
                     key={sub.id}
                     href={`/?cat=${activeCat}&subcat=${sub.slug}`}
-                    className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      activeSubcat === sub.slug
-                        ? "bg-primary text-white shadow-sm"
-                        : "bg-gray-100 text-text-light hover:bg-pink-50 hover:text-primary"
+                    className={`group relative block overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300 ${
+                      activeSubcat === sub.slug ? "ring-2 ring-primary ring-offset-2" : ""
                     }`}
                   >
-                    {sub.name}
+                    {/* Background image */}
+                    {sub.image_url ? (
+                      <img
+                        src={sub.image_url}
+                        alt={sub.name}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-pink-100 to-pink-50" />
+                    )}
+
+                    {/* Subtle gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+                    {/* Subcategory name (top-left) */}
+                    <div className="absolute top-3 left-3">
+                      <h3 className="text-sm md:text-base font-black text-text drop-shadow-sm leading-tight">
+                        {sub.name.toUpperCase()}
+                      </h3>
+                    </div>
+
+                    {/* "Voir plus >" button (bottom-left) */}
+                    <div className="absolute bottom-3 left-3">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/90 text-white text-[10px] md:text-[11px] font-semibold group-hover:bg-primary transition-colors shadow-sm">
+                        Voir plus
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
                   </Link>
                 ))}
               </div>
-            )}
-          </div>
+
+              {/* Right arrow */}
+              <button
+                onClick={() => {
+                  if (subcatCarouselRef.current) subcatCarouselRef.current.scrollBy({ left: subcatCarouselRef.current.offsetWidth * 0.7, behavior: "smooth" });
+                }}
+                className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
+                aria-label="Suivant"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ─── Filtered title (for non-category filters: new/promo) ─── */}
+      <div ref={productsRef} style={{ scrollMarginTop: "140px" }} />
+      {isFiltered && !activeCat && (
+        <section className="max-w-7xl mx-auto px-4 pt-4 pb-1">
+          <h2 className="text-lg md:text-2xl font-black text-text">
+            {activeFilter === "new"
+              ? "NOUVEAUTÉS"
+              : activeFilter === "promo"
+                ? "PROMOTIONS"
+                : ""}
+          </h2>
         </section>
       )}
 
@@ -315,7 +370,7 @@ function HomeContent() {
             {(filtered) => (
               <>
                 {filtered.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-[2px] md:gap-[2px]">
                     {filtered.map((p) => (
                       <ProductCard key={p.id} product={p} />
                     ))}
@@ -366,7 +421,7 @@ function HomeContent() {
       {/* ─── Promo Banners (only on home) ─── */}
       {!isFiltered && (
         <section className="max-w-7xl mx-auto px-4 py-8" id="promo-banners">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="promo-gradient rounded-2xl p-6 flex items-center justify-between hover:shadow-lg transition-shadow cursor-pointer group">
               <div>
                 <h3 className="text-lg font-black text-primary-dark">BON D&apos;ACHAT</h3>
@@ -401,9 +456,6 @@ function HomeContent() {
       )}
 
       </div>{/* end main content wrapper */}
-
-      {/* ─── Footer ─── */}
-      <Footer />
     </div>
   );
 }

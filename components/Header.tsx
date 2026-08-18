@@ -24,12 +24,13 @@ export function Header() {
   const [hovered, setHovered] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const isHomepage = pathname === "/";
-  const scrolled = isHomepage ? scrollY > 20 : true;
-  const active = scrolled || hovered; // visual state: white bg when scrolled OR hovered
-
   const activeCat = searchParams.get("cat");
   const activeFilter = searchParams.get("filter");
+
+  const isHomepage = pathname === "/";
+  const isFilteredHome = isHomepage && !!(activeCat || activeFilter);
+  const scrolled = isHomepage && !isFilteredHome ? scrollY > 20 : true;
+  const active = scrolled || hovered; // visual state: white bg when scrolled OR hovered
 
   useEffect(() => {
     setMounted(true);
@@ -185,14 +186,14 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Right: Contact Us + Favorites + Cart */}
+            {/* Right: Contactez-nous + Favorites + Cart */}
             <div className="flex items-center justify-end gap-5">
-              <Link
-                href="#footer"
-                className={`text-sm font-medium transition-colors hidden lg:block ${active ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white"}`}
+              <button
+                onClick={() => window.dispatchEvent(new Event("open-contact-drawer"))}
+                className={`text-sm font-medium transition-colors hidden lg:block cursor-pointer ${active ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white"}`}
               >
-                Contact Us
-              </Link>
+                Contactez-nous
+              </button>
               <Link href="/favorites" className={`flex flex-col items-center transition-colors relative ${iconColor}`} id="header-favorites">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 {mounted && favCount > 0 && (

@@ -41,7 +41,7 @@ export default function FavoritesPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[2px] md:gap-[2px]">
           {favorites.map((fav) => (
             <div key={fav.product.id} className="relative">
               <ProductCard product={fav.product} />

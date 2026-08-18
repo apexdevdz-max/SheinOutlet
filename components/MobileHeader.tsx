@@ -85,15 +85,17 @@ export function MobileHeader() {
       setSearchQuery("");
     }
   };
+  const isForceWhite = !!(activeCat || activeFilter) || pathname === "/promotions";
+  const headerActive = scrolled || isForceWhite;
 
-  const iconColor = scrolled ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white";
+  const iconColor = headerActive ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white";
 
   return (
     <>
       {/* ── Mobile Header ── */}
       <div
         className={`md:hidden fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-          scrolled
+          headerActive
             ? "bg-white/95 backdrop-blur-md shadow-sm"
             : "bg-transparent"
         }`}
@@ -129,7 +131,7 @@ export function MobileHeader() {
                 src="/logoShein.png"
                 alt="SHEIN outlet"
                 className={`w-28 h-auto transition-all duration-300 ${
-                  scrolled ? "" : "brightness-0 invert drop-shadow-sm"
+                  headerActive ? "" : "brightness-0 invert drop-shadow-sm"
                 }`}
               />
             </Link>
@@ -299,14 +301,16 @@ export function MobileHeader() {
                   </Link>
                 );
               })}
-              {/* Contact Us */}
-              <Link
-                href="#footer"
-                onClick={() => setMenuOpen(false)}
-                className="block px-5 py-3.5 text-sm font-semibold transition-colors border-t border-gray-200 mt-2 text-gray-800 hover:text-primary hover:bg-gray-50"
+              {/* Contactez-nous */}
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  window.dispatchEvent(new Event("open-contact-drawer"));
+                }}
+                className="block w-full text-left px-5 py-3.5 text-sm font-semibold transition-colors border-t border-gray-200 mt-2 text-gray-800 hover:text-primary hover:bg-gray-50"
               >
-                Contact Us
-              </Link>
+                Contactez-nous
+              </button>
             </nav>
           </div>
         </div>

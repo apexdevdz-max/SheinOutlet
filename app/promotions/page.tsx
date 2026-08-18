@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { FlashSaleCountdown } from "@/components/FlashSaleCountdown";
 import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
+import { MobileHeader } from "@/components/MobileHeader";
 import type { Product, FlashSale } from "@/lib/types";
 
 export default function PromotionsPage() {
@@ -24,23 +25,28 @@ export default function PromotionsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 md:pt-40 pb-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-24 bg-gray-200 rounded-2xl" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-72 bg-gray-200 rounded-2xl" />
-              ))}
+      <>
+        <MobileHeader />
+        <div className="min-h-screen pt-16 md:pt-28 pb-20 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse space-y-6">
+              <div className="h-24 bg-gray-200 rounded-2xl" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="h-72 bg-gray-200 rounded-2xl" />
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen pt-32 md:pt-40 pb-20 px-4">
+    <>
+      <MobileHeader />
+      <div className="min-h-screen pt-16 md:pt-28 pb-20 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Flash Sale Banner */}
         {campaign && (
@@ -67,7 +73,7 @@ export default function PromotionsPage() {
             {(filtered) => (
               <>
                 {filtered.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-[2px] md:gap-[2px]">
                     {filtered.map((p) => (
                       <ProductCard key={p.id} product={p} />
                     ))}
@@ -91,5 +97,6 @@ export default function PromotionsPage() {
         )}
       </div>
     </div>
+    </>
   );
 }

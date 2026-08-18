@@ -13,7 +13,7 @@ export function ProductCard({ product }: { product: Product }) {
   const fav = isFavorite(product.id);
 
   return (
-    <div className="product-card group relative bg-white rounded-xl overflow-hidden border border-border/50" id={`product-${product.slug}`}>
+    <div className="product-card group relative bg-white overflow-hidden border border-border/50" id={`product-${product.slug}`}>
       {/* Image */}
       <Link href={`/product/${product.slug}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-50">
         <div className="w-full h-full bg-gradient-to-br from-primary-light to-pink-100 flex items-center justify-center relative">

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { Header } from "@/components/Header";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { ContactDrawer } from "@/components/ContactDrawer";
 import { MainContent } from "@/components/MainContent";
 import { ToastContainer } from "@/components/ToastContainer";
+import { FooterWrapper } from "@/components/FooterWrapper";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -43,7 +44,10 @@ export default function RootLayout({
         </Suspense>
         <MainContent>{children}</MainContent>
 
-        <WhatsAppButton />
+        <Suspense fallback={null}>
+          <FooterWrapper />
+        </Suspense>
+        <ContactDrawer />
       </body>
     </html>
   );

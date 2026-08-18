@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -59,14 +59,14 @@ export default function CategoriesPage() {
           const subcats = getSubCategories(cat.id);
 
           return (
-            <div key={cat.id} className="bg-white rounded-2xl border border-border overflow-hidden" id={`cat-${cat.slug}`}>
+            <div key={cat.id} className="bg-white border border-border overflow-hidden" id={`cat-${cat.slug}`}>
               {/* Parent Category Card */}
               <Link
                 href={`/?cat=${cat.slug}`}
                 className="flex items-center gap-4 p-3 hover:bg-pink-50/30 transition-colors group"
               >
                 {/* Category Image */}
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-pink-50 flex-shrink-0">
+                <div className="w-16 h-16 md:w-20 md:h-20 overflow-hidden bg-pink-50 flex-shrink-0">
                   {cat.image_url ? (
                     <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
                   ) : (

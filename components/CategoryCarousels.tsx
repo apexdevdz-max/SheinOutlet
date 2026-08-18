@@ -15,7 +15,7 @@ interface CategoryRow {
 /* ── Single Carousel Row ── */
 function CarouselRow({ row }: { row: CategoryRow }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const GAP = 12; // gap-3 = 12px
+  const GAP = 2; // gap-[2px] = 2px
 
   function getCardWidth() {
     if (!scrollRef.current) return 250;
@@ -85,7 +85,7 @@ function CarouselRow({ row }: { row: CategoryRow }) {
       <div className="md:overflow-hidden md:px-4">
         <div
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory pl-4 md:pl-0"
+          className="flex gap-[2px] overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory pl-4 md:pl-0"
         >
           {row.products.map((product) => (
             <div
@@ -125,10 +125,10 @@ export function CategoryCarousels() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-3 overflow-hidden">
+        <div className="flex gap-[2px] overflow-hidden">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex-shrink-0 w-[140px] md:w-[180px]">
-              <div className="aspect-[3/4] bg-gray-100 rounded-xl animate-pulse" />
+              <div className="aspect-[3/4] bg-gray-100 animate-pulse" />
               <div className="h-3 bg-gray-100 rounded mt-2 animate-pulse" />
               <div className="h-3 bg-gray-100 rounded mt-1 w-2/3 animate-pulse" />
             </div>

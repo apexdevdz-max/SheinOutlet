@@ -61,7 +61,7 @@ function SearchContent() {
           {(filtered) => (
             <>
               {filtered.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-[2px] md:gap-[2px]">
                   {filtered.map((product, i) => (
                     <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.03}s` }}>
                       <ProductCard product={product} />
