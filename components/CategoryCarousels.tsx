@@ -38,7 +38,7 @@ function CarouselRow({ row }: { row: CategoryRow }) {
   return (
     <section className="max-w-7xl mx-auto">
       {/* Header: mobile = title left + "Voir tout" right; desktop = title + "Voir tout" left, arrows right */}
-      <div className="flex items-center justify-between px-4 mb-3">
+      <div className="flex items-center justify-between md:px-4 mb-3">
         <div className="flex items-center gap-3">
           <h2 className="text-base md:text-lg font-black text-text flex items-center gap-1.5">
             {row.icon && <span>{row.icon}</span>}
@@ -81,21 +81,21 @@ function CarouselRow({ row }: { row: CategoryRow }) {
         </div>
       </div>
 
-      {/* Carousel - overflow hidden on desktop, visible scroll on mobile */}
-      <div className="md:overflow-hidden md:px-4">
+      {/* Carousel - full-bleed on mobile (negative margin breaks out of parent padding), overflow hidden on desktop */}
+      <div className="-mx-4 md:mx-0 md:overflow-hidden md:px-4">
         <div
           ref={scrollRef}
-          className="flex gap-[2px] overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory pl-4 md:pl-0"
+          className="flex gap-[2px] overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
         >
-          {row.products.map((product) => (
+          {row.products.map((product, i) => (
             <div
               key={product.id}
-              className="flex-shrink-0 w-[75vw] md:w-[calc((100%-36px)/4)] snap-start"
+              className={`flex-shrink-0 w-[75vw] md:w-[calc((100%-36px)/4)] snap-start${i === 0 ? " ml-[16px] md:ml-0" : ""}`}
             >
               <ProductCard product={product} />
             </div>
           ))}
-          {/* Right padding spacer for mobile scroll */}
+          {/* Right spacer: aligns last card with page margin at end of scroll */}
           <div className="flex-shrink-0 w-4 md:hidden" aria-hidden="true" />
         </div>
       </div>
@@ -162,19 +162,16 @@ export function CategoryCarousels() {
       title: "NOUVEAUTÉS",
       href: "/?filter=new",
       products: newProducts,
-      icon: " ",
     },
     {
       title: "MEILLEURES VENTES",
-      href: "/categories?filter=best",
+      href: "/best-sellers",
       products: bestSellers,
-      icon: "",
     },
     {
       title: "OFFRES FLASH",
-      href: "/categories?filter=flash",
+      href: "/flash-sales",
       products: flashProducts,
-      icon: "",
     },
     ...parentCats.map((cat) => ({
       title: cat.name.toUpperCase(),

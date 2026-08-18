@@ -61,6 +61,7 @@ export function MobileHeader() {
   const navLinks = [
     { label: "ACCUEIL", href: "/", slug: null as string | null },
     { label: "NOUVEAUTÉS", href: "/?filter=new", slug: null as string | null },
+    { label: "MEILLEURES VENTES", href: "/best-sellers", slug: null as string | null },
     ...headerCategories.map((c) => ({
       label: c.name.toUpperCase(),
       href: `/?cat=${c.slug}`,
@@ -74,6 +75,7 @@ export function MobileHeader() {
     if (link.slug && activeCat === link.slug) return true;
     if (link.label === "NOUVEAUTÉS" && activeFilter === "new") return true;
     if (link.label === "PROMOTIONS" && pathname === "/promotions") return true;
+    if (link.label === "MEILLEURES VENTES" && pathname === "/best-sellers") return true;
     return false;
   }
 
@@ -85,7 +87,7 @@ export function MobileHeader() {
       setSearchQuery("");
     }
   };
-  const isForceWhite = !!(activeCat || activeFilter) || pathname === "/promotions";
+  const isForceWhite = !!(activeCat || activeFilter) || pathname === "/promotions" || pathname === "/best-sellers" || pathname === "/flash-sales";
   const headerActive = scrolled || isForceWhite;
 
   const iconColor = headerActive ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white";

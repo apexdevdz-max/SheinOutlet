@@ -190,11 +190,13 @@ function HomeContent() {
             </svg>
           </button>
 
-          {/* Scrollable row */}
+          {/* Scrollable row — full-bleed on mobile */}
           <div
             ref={catCarouselRef}
-            className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1 pb-2">
+            className="-mx-4 md:mx-0 flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth md:px-1 pb-2">
 
+            {/* Left spacer for mobile Gymshark-style scroll */}
+            <div className="flex-shrink-0 w-4 md:hidden" aria-hidden="true" />
             {parentCats.map((cat) => (
               <Link
                 key={cat.id}
@@ -244,6 +246,8 @@ function HomeContent() {
                 </div>
               </Link>
             ))}
+            {/* Right spacer for mobile Gymshark-style scroll */}
+            <div className="flex-shrink-0 w-4 md:hidden" aria-hidden="true" />
           </div>
 
           {/* Right arrow */}
@@ -285,11 +289,13 @@ function HomeContent() {
                 </svg>
               </button>
 
-              {/* Scrollable row */}
+              {/* Scrollable row — full-bleed on mobile */}
               <div
                 ref={subcatCarouselRef}
-                className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1 pb-2">
+                className="-mx-4 md:mx-0 flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth md:px-1 pb-2">
 
+                {/* Left spacer for mobile Gymshark-style scroll */}
+                <div className="flex-shrink-0 w-4 md:hidden" aria-hidden="true" />
                 {activeSubcats.map((sub) => (
                   <Link
                     key={sub.id}
@@ -330,6 +336,8 @@ function HomeContent() {
                     </div>
                   </Link>
                 ))}
+                {/* Right spacer for mobile Gymshark-style scroll */}
+                <div className="flex-shrink-0 w-4 md:hidden" aria-hidden="true" />
               </div>
 
               {/* Right arrow */}

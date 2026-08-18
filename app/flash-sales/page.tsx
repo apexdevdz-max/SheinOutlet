@@ -3,26 +3,19 @@
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
+import { FlashSaleCountdown } from "@/components/FlashSaleCountdown";
 import { MobileHeader } from "@/components/MobileHeader";
 import type { Product } from "@/lib/types";
 
-export default function PromotionsPage() {
+export default function FlashSalesPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/products?limit=500")
+    fetch("/api/flash-sale")
       .then((r) => r.json())
       .then((data) => {
-        const all: Product[] = Array.isArray(data) ? data : [];
-        // Keep only products that have an old_price higher than price (discounted)
-        setProducts(
-          all.filter(
-            (p) =>
-              p.old_price != null &&
-              p.old_price > p.price
-          )
-        );
+        setProducts(data.products || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -35,7 +28,7 @@ export default function PromotionsPage() {
         <div className="min-h-screen pt-16 md:pt-28 pb-8 px-4">
           <div className="max-w-7xl mx-auto">
             <div className="animate-pulse space-y-6">
-              <div className="h-10 bg-gray-200 rounded w-64" />
+              <div className="h-24 bg-gray-200 rounded" />
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px]">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="aspect-[3/4] bg-gray-200" />
@@ -53,43 +46,38 @@ export default function PromotionsPage() {
       <MobileHeader />
       <div className="min-h-screen pt-16 md:pt-4 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Page Title */}
-          <div className="mb-6">
+          {/* Flash sale banner */}
+          <FlashSaleCountdown />
+
+          {/* Header */}
+          <div className="mb-4 mt-4">
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
-              Promotions
+              Offres Flash
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {products.length > 0
-                ? `${products.length} produit${products.length > 1 ? "s" : ""} en promotion`
-                : "Aucune promotion en cours"}
+              {products.length} produit{products.length > 1 ? "s" : ""}
             </p>
           </div>
 
-          {/* Products Grid with Filters */}
+          {/* Products with filter */}
           {products.length > 0 ? (
             <ProductFilterSidebar products={products}>
               {(filtered) => (
-                <>
-                  {filtered.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px]">
-                      {filtered.map((p) => (
-                        <ProductCard key={p.id} product={p} />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <p className="text-sm text-gray-500">Aucun produit ne correspond aux filtres.</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px]">
+                  {filtered.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                  {filtered.length === 0 && (
+                    <div className="col-span-full text-center py-20 text-gray-400">
+                      Aucun produit trouvé.
                     </div>
                   )}
-                </>
+                </div>
               )}
             </ProductFilterSidebar>
           ) : (
-            <div className="text-center py-20">
-              <h2 className="text-xl font-bold text-gray-700 mb-2">Pas de promotions pour le moment</h2>
-              <p className="text-sm text-gray-400 max-w-md mx-auto">
-                Revenez bientôt pour découvrir nos meilleures réductions !
-              </p>
+            <div className="text-center py-20 text-gray-400">
+              Aucune offre flash en cours pour le moment.
             </div>
           )}
         </div>

@@ -34,12 +34,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Mobile bottom nav spacer */
-@media (max-width: 767px) {
-  body {
-    padding-bottom: 72px;
-  }
-}
+
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {

@@ -76,7 +76,6 @@ export function FlashSaleCountdown() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Title */}
         <div className="flex items-center gap-2">
-          <span className="text-2xl"></span>
           <h2 className="text-white text-xl md:text-2xl font-black tracking-tight">
             {campaign.title}
           </h2>
@@ -97,10 +96,10 @@ export function FlashSaleCountdown() {
           <TimeBlock value={time.seconds} label="Sec" />
         </div>
 
-        {/* CTA — hidden when already on /promotions */}
-        {pathname !== "/promotions" && (
+        {/* CTA — hidden when already on /flash-sales or /promotions */}
+        {pathname !== "/promotions" && pathname !== "/flash-sales" && (
           <Link
-            href="/promotions"
+            href="/flash-sales"
             className="bg-primary hover:bg-primary-dark text-white text-sm font-bold px-6 py-2.5 rounded-full transition-all hover:shadow-lg hover:shadow-primary/30 whitespace-nowrap"
             id="flash-sale-cta"
           >
