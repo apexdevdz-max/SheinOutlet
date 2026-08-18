@@ -293,3 +293,13 @@ input:focus, select:focus, textarea:focus {
 .animate-fade-in-up {
   animation: fade-in-up 0.35s ease-out;
 }
+
+/* Mobile carousel: left gap on the first card + snap offset */
+@media (max-width: 767px) {
+  .carousel-first-card {
+    margin-left: 16px !important;
+  }
+  .carousel-scroll-mobile {
+    scroll-padding-left: 16px !important;
+  }
+}

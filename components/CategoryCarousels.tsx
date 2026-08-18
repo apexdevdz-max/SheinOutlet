@@ -85,12 +85,12 @@ function CarouselRow({ row }: { row: CategoryRow }) {
       <div className="-mx-4 md:mx-0 md:overflow-hidden md:px-4">
         <div
           ref={scrollRef}
-          className="flex gap-[2px] overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
+          className="flex gap-[2px] overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory carousel-scroll-mobile"
         >
           {row.products.map((product, i) => (
             <div
               key={product.id}
-              className={`flex-shrink-0 w-[75vw] md:w-[calc((100%-36px)/4)] snap-start${i === 0 ? " ml-[16px] md:ml-0" : ""}`}
+              className={`flex-shrink-0 w-[75vw] md:w-[calc((100%-36px)/4)] snap-start${i === 0 ? " carousel-first-card" : ""}`}
             >
               <ProductCard product={product} />
             </div>
