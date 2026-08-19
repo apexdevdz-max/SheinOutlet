@@ -13,6 +13,7 @@ export function MobileHeader() {
   const searchParams = useSearchParams();
   const favCount = useStore((s) => s.getFavoritesCount());
   const cartCount = useStore((s) => s.getCartCount());
+  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,6 +23,8 @@ export function MobileHeader() {
 
   const activeCat = searchParams.get("cat");
   const activeFilter = searchParams.get("filter");
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -136,7 +139,7 @@ export function MobileHeader() {
               <svg className="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              {favCount > 0 && (
+              {mounted && favCount > 0 && (
                 <span className="absolute top-0 right-0 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
                   {favCount}
                 </span>
@@ -151,7 +154,7 @@ export function MobileHeader() {
               <svg className="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute top-0 right-0 bg-primary text-white text-[7px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>

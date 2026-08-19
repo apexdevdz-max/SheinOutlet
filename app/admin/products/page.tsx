@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { ImageCropEditor } from "@/components/admin/ImageCropEditor";
-import type { Product, Category, CategoryAttributeTemplate, ProductAttribute } from "@/lib/types";
+import type { Product, Category, CategoryAttributeTemplate, ProductAttribute, ProductAttributeValue } from "@/lib/types";
+import { normalizeAttributes, isColorAttribute, extractPlainValues } from "@/lib/attributeUtils";
 
 /* ══════════════════════════════════════════════════════════ */
 /*  Shared UI Components                                     */
@@ -368,15 +369,15 @@ function ProductModal({
   // Build initial attributes from product data
   function getInitialAttributes(): ProductAttribute[] {
     if (product?.attributes && product.attributes.length > 0) {
-      return product.attributes.map((a) => ({ label: a.label, values: [...a.values] }));
+      return normalizeAttributes(product.attributes as unknown as { label: string; values: (string | ProductAttributeValue)[] }[]);
     }
     // Fallback: build from legacy sizes/colors
     const attrs: ProductAttribute[] = [];
     if (product?.sizes && product.sizes.length > 0) {
-      attrs.push({ label: product.sizes_label || "Taille", values: [...product.sizes] });
+      attrs.push({ label: product.sizes_label || "Taille", values: product.sizes.map(s => ({ value: s, available: true, imageUrl: null })) });
     }
     if (product?.colors && product.colors.length > 0) {
-      attrs.push({ label: "Couleur", values: [...product.colors] });
+      attrs.push({ label: "Couleur", values: product.colors.map(c => ({ value: c, available: true, imageUrl: null })) });
     }
     return attrs;
   }
@@ -397,12 +398,8 @@ function ProductModal({
   });
 
   const [attributes, setAttributes] = useState<ProductAttribute[]>(getInitialAttributes());
-  // Raw text state for attribute values input (so commas can be typed freely)
-  const [rawAttrValues, setRawAttrValues] = useState<Record<number, string>>(() => {
-    const init: Record<number, string> = {};
-    getInitialAttributes().forEach((a, i) => { init[i] = a.values.join(", "); });
-    return init;
-  });
+  // New value input per attribute (for adding new values via Enter key)
+  const [newValueInputs, setNewValueInputs] = useState<Record<number, string>>({});
 
   // Category data
   const parentCategories = categories.filter((c) => !c.parent_id);
@@ -437,20 +434,19 @@ function ProductModal({
   }, [form.category_id, categories]);
 
   // Attribute helpers
-  function addAttribute(label: string = "", values: string[] = []) {
+  function addAttribute(label: string = "", values: ProductAttributeValue[] = []) {
     setAttributes([...attributes, { label, values }]);
-    setRawAttrValues((prev) => ({ ...prev, [attributes.length]: values.join(", ") }));
   }
 
   function removeAttribute(index: number) {
     setAttributes(attributes.filter((_, i) => i !== index));
-    // Rebuild raw values map with corrected indices
-    setRawAttrValues((prev) => {
+    // Rebuild new value inputs with corrected indices
+    setNewValueInputs((prev) => {
       const next: Record<number, string> = {};
       let j = 0;
       for (let i = 0; i < attributes.length; i++) {
         if (i === index) continue;
-        next[j] = prev[i] ?? attributes[i].values.join(", ");
+        next[j] = prev[i] ?? "";
         j++;
       }
       return next;
@@ -461,25 +457,44 @@ function ProductModal({
     setAttributes(attributes.map((a, i) => i === index ? { ...a, label } : a));
   }
 
-  function updateAttributeValues(index: number, rawStr: string) {
-    setRawAttrValues((prev) => ({ ...prev, [index]: rawStr }));
+  function addValue(attrIdx: number, valueStr: string) {
+    if (!valueStr.trim()) return;
+    setAttributes(attributes.map((a, i) =>
+      i === attrIdx
+        ? { ...a, values: [...a.values, { value: valueStr.trim(), available: true, imageUrl: null }] }
+        : a
+    ));
   }
 
-  function commitAttributeValues(index: number) {
-    const raw = rawAttrValues[index] ?? "";
-    const values = raw.split(",").map((v) => v.trim()).filter(Boolean);
-    setAttributes(attributes.map((a, i) => i === index ? { ...a, values } : a));
+  function removeValue(attrIdx: number, valueIdx: number) {
+    setAttributes(attributes.map((a, i) =>
+      i === attrIdx
+        ? { ...a, values: a.values.filter((_, vi) => vi !== valueIdx) }
+        : a
+    ));
   }
 
-  function getAttributeValuesStr(index: number): string {
-    return rawAttrValues[index] ?? attributes[index]?.values.join(", ") ?? "";
+  function toggleValueAvailability(attrIdx: number, valueIdx: number) {
+    setAttributes(attributes.map((a, i) =>
+      i === attrIdx
+        ? { ...a, values: a.values.map((v, vi) => vi === valueIdx ? { ...v, available: !v.available } : v) }
+        : a
+    ));
+  }
+
+  function setValueImage(attrIdx: number, valueIdx: number, imageUrl: string | null) {
+    setAttributes(attributes.map((a, i) =>
+      i === attrIdx
+        ? { ...a, values: a.values.map((v, vi) => vi === valueIdx ? { ...v, imageUrl } : v) }
+        : a
+    ));
   }
 
   // Check if a template is already applied
   function isTemplateApplied(tpl: CategoryAttributeTemplate): boolean {
     return attributes.some(
       (a) => a.label.toLowerCase() === tpl.attribute_name.toLowerCase() &&
-             tpl.attribute_values.every((v) => a.values.includes(v))
+             tpl.attribute_values.every((v) => a.values.some((av) => av.value === v))
     );
   }
 
@@ -492,8 +507,8 @@ function ProductModal({
       // Remove it
       removeAttribute(existingIdx);
     } else {
-      // Add it
-      addAttribute(tpl.attribute_name, [...tpl.attribute_values]);
+      // Add it with enriched values
+      addAttribute(tpl.attribute_name, tpl.attribute_values.map(v => ({ value: v, available: true, imageUrl: null })));
     }
   }
 
@@ -527,15 +542,6 @@ function ProductModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // Commit any raw attribute values that haven't been blurred yet
-    const committedAttrs = attributes.map((a, i) => {
-      const raw = rawAttrValues[i];
-      if (raw !== undefined) {
-        const values = raw.split(",").map((v) => v.trim()).filter(Boolean);
-        return { ...a, values };
-      }
-      return a;
-    });
     const slug =
       form.slug ||
       form.name
@@ -544,15 +550,12 @@ function ProductModal({
         .replace(/(^-|-$)/g, "");
 
     // Build legacy sizes/colors from attributes for backward compat
-    const cleanAttrs = committedAttrs.filter((a) => a.label.trim() && a.values.length > 0);
+    const cleanAttrs = attributes.filter((a) => a.label.trim() && a.values.length > 0);
     const sizesAttr = cleanAttrs.find((a) => {
       const l = a.label.toLowerCase();
       return l.includes("taille") || l.includes("size") || l.includes("pointure") || l.includes("stockage") || l.includes("capacit");
-    }) || cleanAttrs.find((a) => !a.label.toLowerCase().includes("couleur") && !a.label.toLowerCase().includes("color"));
-    const colorsAttr = cleanAttrs.find((a) => {
-      const l = a.label.toLowerCase();
-      return l.includes("couleur") || l.includes("color");
-    });
+    }) || cleanAttrs.find((a) => !isColorAttribute(a.label));
+    const colorsAttr = cleanAttrs.find((a) => isColorAttribute(a.label));
 
     onSave({
       name: form.name,
@@ -563,9 +566,9 @@ function ProductModal({
       images: form.images,
       category_id: form.category_id || null,
       attributes: cleanAttrs,
-      sizes: sizesAttr?.values || [],
+      sizes: sizesAttr ? extractPlainValues(sizesAttr.values) : [],
       sizes_label: sizesAttr?.label || "Taille",
-      colors: colorsAttr?.values || [],
+      colors: colorsAttr ? extractPlainValues(colorsAttr.values) : [],
       stock: Number(form.stock),
       is_flash_sale: form.is_flash_sale,
       is_best_seller: form.is_best_seller,
@@ -736,35 +739,90 @@ function ProductModal({
           {attributes.length > 0 && (
             <div className="space-y-3">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Caractéristiques du produit</p>
-              {attributes.map((attr, idx) => (
-                <div key={idx} className="flex items-start gap-2 p-3 rounded-xl border border-gray-100 bg-gray-50/50">
-                  <div className="flex-1 space-y-2">
+              {attributes.map((attr, idx) => {
+                const isColor = isColorAttribute(attr.label);
+                return (
+                <div key={idx} className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 space-y-3">
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={attr.label}
                       onChange={(e) => updateAttributeLabel(idx, e.target.value)}
                       placeholder="Nom (ex: Stockage, Couleur, Matière...)"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
+                      className="flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
                     />
+                    <button
+                      type="button"
+                      onClick={() => removeAttribute(idx)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors flex-shrink-0"
+                      title="Supprimer la caractéristique"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+
+                  {/* Value chips */}
+                  <div className="flex flex-wrap gap-2">
+                    {attr.values.map((v, vi) => (
+                      <div key={vi} className={`group flex items-center gap-1.5 pl-3 pr-1 py-1.5 rounded-lg border text-sm transition-all ${v.available ? "bg-white border-gray-200" : "bg-gray-100 border-gray-200 opacity-60"}`}>
+                        <span className={v.available ? "text-gray-800" : "text-gray-400 line-through"}>{v.value}</span>
+
+                        {/* Toggle availability */}
+                        <button
+                          type="button"
+                          onClick={() => toggleValueAvailability(idx, vi)}
+                          className={`relative w-8 h-4 rounded-full transition-colors flex-shrink-0 ${v.available ? "bg-green-400" : "bg-gray-300"}`}
+                          title={v.available ? "Disponible — cliquer pour désactiver" : "Indisponible — cliquer pour activer"}
+                        >
+                          <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${v.available ? "left-4" : "left-0.5"}`} />
+                        </button>
+
+                        {/* Color image button */}
+                        {isColor && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = prompt("URL de l'image pour cette couleur :", v.imageUrl || "");
+                              if (url !== null) setValueImage(idx, vi, url || null);
+                            }}
+                            className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-colors ${v.imageUrl ? "bg-blue-100 text-blue-600" : "text-gray-300 hover:text-gray-500"}`}
+                            title={v.imageUrl ? `Image : ${v.imageUrl.substring(0, 40)}...` : "Ajouter une image"}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v14.25a1.5 1.5 0 001.5 1.5z" /></svg>
+                          </button>
+                        )}
+
+                        {/* Remove value */}
+                        <button
+                          type="button"
+                          onClick={() => removeValue(idx, vi)}
+                          className="w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                          title="Supprimer cette valeur"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add new value input */}
                     <input
                       type="text"
-                      value={getAttributeValuesStr(idx)}
-                      onChange={(e) => updateAttributeValues(idx, e.target.value)}
-                      onBlur={() => commitAttributeValues(idx)}
-                      placeholder="Valeurs séparées par virgules (ex: 128GB, 256GB, 1TB)"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
+                      value={newValueInputs[idx] || ""}
+                      onChange={(e) => setNewValueInputs({ ...newValueInputs, [idx]: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addValue(idx, newValueInputs[idx] || "");
+                          setNewValueInputs({ ...newValueInputs, [idx]: "" });
+                        }
+                      }}
+                      placeholder="+ Ajouter (Entrée)"
+                      className="px-2 py-1 w-32 text-sm border border-dashed border-gray-300 rounded-lg bg-white focus:outline-none focus:border-purple-400 placeholder:text-gray-300"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeAttribute(idx)}
-                    className="mt-2 w-7 h-7 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors flex-shrink-0"
-                    title="Supprimer"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

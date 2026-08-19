@@ -8,9 +8,15 @@ export interface Category {
   display_order: number;
 }
 
+export interface ProductAttributeValue {
+  value: string;
+  available: boolean;
+  imageUrl?: string | null;
+}
+
 export interface ProductAttribute {
   label: string;
-  values: string[];
+  values: ProductAttributeValue[];
 }
 
 export interface Product {

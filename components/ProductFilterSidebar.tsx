@@ -77,14 +77,15 @@ function extractFacets(products: Product[]): Facet[] {
         optMap = new Map();
         facetMap.set(label, optMap);
       }
-      for (const v of attr.values) {
-        const key = v.trim().toLowerCase();
+      for (const attrVal of attr.values) {
+        const valStr = typeof attrVal === "string" ? attrVal : attrVal.value;
+        const key = valStr.trim().toLowerCase();
         if (!key) continue;
         const existing = optMap.get(key);
         if (existing) {
           existing.count++;
         } else {
-          optMap.set(key, { canonical: capitalize(v.trim()), count: 1 });
+          optMap.set(key, { canonical: capitalize(valStr.trim()), count: 1 });
         }
       }
     }
@@ -130,7 +131,7 @@ function applyFilters(products: Product[], filters: FilterState): Product[] {
       if (!p.attributes) return false;
       const attr = p.attributes.find((a) => a.label === label);
       if (!attr) return false;
-      return attr.values.some((v) => lowerSelected.has(v.toLowerCase()));
+      return attr.values.some((attrVal) => { const s = typeof attrVal === "string" ? attrVal : attrVal.value; return lowerSelected.has(s.toLowerCase()); });
     });
   }
 
@@ -628,8 +629,9 @@ export function ProductFilterSidebar({
           if (!p.attributes) continue;
           const attr = p.attributes.find((a) => a.label === facet.label);
           if (!attr) continue;
-          for (const v of attr.values) {
-            countMap.set(v, (countMap.get(v) || 0) + 1);
+          for (const attrVal of attr.values) {
+            const valStr = typeof attrVal === "string" ? attrVal : attrVal.value;
+            countMap.set(valStr, (countMap.get(valStr) || 0) + 1);
           }
         }
 

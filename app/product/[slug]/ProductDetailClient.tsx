@@ -7,7 +7,8 @@ import Image from "next/image";
 import cloudinaryLoader from "@/lib/cloudinary";
 import { useStore } from "@/lib/store/useStore";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
-import type { Product } from "@/lib/types";
+import type { Product, ProductAttributeValue } from "@/lib/types";
+import { normalizeAttributes, isColorAttribute } from "@/lib/attributeUtils";
 import { ProductCard } from "@/components/ProductCard";
 
 /* ── Related Products Carousel ── */
@@ -66,17 +67,18 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
 
   // Build display attributes: prefer attributes array, fallback to legacy
   const displayAttrs = (product.attributes && product.attributes.length > 0)
-    ? product.attributes
+    ? normalizeAttributes(product.attributes as unknown as { label: string; values: (string | ProductAttributeValue)[] }[])
     : [
-        ...(product.sizes?.length > 0 ? [{ label: product.sizes_label || "Taille", values: product.sizes }] : []),
-        ...(product.colors?.length > 0 ? [{ label: "Couleur", values: product.colors }] : []),
+        ...(product.sizes?.length > 0 ? [{ label: product.sizes_label || "Taille", values: product.sizes.map(s => ({ value: s, available: true, imageUrl: null })) }] : []),
+        ...(product.colors?.length > 0 ? [{ label: "Couleur", values: product.colors.map(c => ({ value: c, available: true, imageUrl: null })) }] : []),
       ];
 
-  // Track selected value per attribute (keyed by label)
+  // Track selected value per attribute (keyed by label) — only pick available values
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     displayAttrs.forEach((attr) => {
-      if (attr.values.length > 0) init[attr.label] = attr.values[0];
+      const firstAvailable = attr.values.find(v => v.available);
+      if (firstAvailable) init[attr.label] = firstAvailable.value;
     });
     return init;
   });
@@ -212,28 +214,53 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
           <p className="text-sm text-text-light leading-relaxed mb-6">{product.description}</p>
 
           {/* Dynamic Attributes */}
-          {displayAttrs.map((attr) => (
+          {displayAttrs.map((attr) => {
+            const isColor = isColorAttribute(attr.label);
+            return (
             <div key={attr.label} className="mb-5">
               <h3 className="text-sm font-bold text-text mb-2">
                 {attr.label} : <span className="font-normal text-text-light">{selections[attr.label] || ""}</span>
               </h3>
               <div className="flex gap-2 flex-wrap">
-                {attr.values.map((val) => (
-                  <button
-                    key={val}
-                    onClick={() => setSelections({ ...selections, [attr.label]: val })}
-                    className={`px-4 py-2 rounded-full text-sm border transition-all ${
-                      selections[attr.label] === val
-                        ? "border-primary bg-primary-light text-primary font-medium"
-                        : "border-border text-text-light hover:border-primary/50"
-                    }`}
-                  >
-                    {val}
-                  </button>
-                ))}
+                {attr.values.map((attrVal) => {
+                  const isSelected = selections[attr.label] === attrVal.value;
+                  const isAvailable = attrVal.available;
+
+                  return (
+                    <button
+                      key={attrVal.value}
+                      disabled={!isAvailable}
+                      title={!isAvailable ? "Indisponible" : undefined}
+                      onClick={() => {
+                        if (!isAvailable) return;
+                        setSelections({ ...selections, [attr.label]: attrVal.value });
+                        // Switch main image for color attributes with imageUrl
+                        if (isColor && attrVal.imageUrl) {
+                          const imgIdx = allImages.indexOf(attrVal.imageUrl);
+                          if (imgIdx >= 0) {
+                            setSelectedImage(imgIdx);
+                          } else {
+                            // Image not in allImages — it's a color-specific image, prepend logic
+                            setSelectedImage(0);
+                          }
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-full text-sm border transition-all ${
+                        !isAvailable
+                          ? "border-gray-200 text-gray-300 line-through cursor-not-allowed opacity-50 bg-gray-50"
+                          : isSelected
+                            ? "border-primary bg-primary-light text-primary font-medium"
+                            : "border-border text-text-light hover:border-primary/50"
+                      }`}
+                    >
+                      {attrVal.value}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {/* Quantity */}
           <div className="mb-6">
