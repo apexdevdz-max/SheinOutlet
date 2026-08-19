@@ -168,11 +168,11 @@ function HomeContent() {
       {/* ─── Mobile Header (transparent overlay) ─── */}
       <MobileHeader />
 
-      {/* ─── Hero Carousel (only when no category filter active) ─── */}
-      {!activeCat && <HeroCarousel />}
+      {/* ─── Hero Carousel (only on unfiltered homepage) ─── */}
+      {!activeCat && !activeFilter && <HeroCarousel />}
 
       {/* ─── Main Content Wrapper (with lateral margins, Header/Footer excluded) ─── */}
-      <div className={`px-4 sm:px-6 lg:px-12 xl:px-20 ${activeCat ? "pt-24 md:pt-32" : ""}`}>
+      <div className={`px-4 sm:px-6 lg:px-12 xl:px-20 ${isFiltered ? "pt-16 md:pt-28" : ""}`}>
 
       {/* ─── Category Cards Carousel (homepage only) ─── */}
       {!isFiltered && parentCats.length > 0 && (

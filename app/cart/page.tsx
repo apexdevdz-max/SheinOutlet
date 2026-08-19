@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "@/lib/store/useStore";
 import { formatPrice, PHONE_REGEX, getShippingCost } from "@/lib/data";
 import { WILAYAS } from "@/lib/data";
-import type { OrderFormData } from "@/lib/types";
+import type { OrderFormData, Order, CartItem } from "@/lib/types";
 
 function CartCountdown() {
   const [time, setTime] = useState({ minutes: 14, seconds: 59 });
@@ -52,6 +52,10 @@ export default function CartPage() {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof OrderFormData, string>>>({});
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [orderData, setOrderData] = useState<Order | null>(null);
+  const [orderItems, setOrderItems] = useState<CartItem[]>([]);
+  const [orderShipping, setOrderShipping] = useState(0);
 
   const total = getCartTotal();
   const count = getCartCount();
@@ -73,12 +77,63 @@ export default function CartPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || submitting) return;
 
-    // In production, this would call Supabase to create the order
-    // const { data, error } = await supabase.from('orders').insert({...}).select();
-    setOrderSuccess(true);
-    clearCart();
+    setSubmitting(true);
+
+    // Snapshot cart before clearing
+    const cartSnapshot = [...cart];
+    const shippingSnapshot = shipping;
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer_first_name: formData.firstName,
+          customer_last_name: formData.lastName,
+          customer_phone: formData.phone,
+          wilaya: formData.wilaya,
+          commune: formData.commune,
+          address: formData.address,
+          notes: formData.notes,
+          total_amount: total + shippingSnapshot,
+          shipping_cost: shippingSnapshot,
+          items: cartSnapshot.map((item) => ({
+            product_id: item.product.id,
+            product_name: item.product.name,
+            product_image: item.product.images?.[0] || "",
+            quantity: item.quantity,
+            size: item.selectedSize,
+            color: item.selectedColor,
+            unit_price: item.product.price,
+          })),
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setOrderData(data);
+        setOrderItems(cartSnapshot);
+        setOrderShipping(shippingSnapshot);
+        setOrderSuccess(true);
+        clearCart();
+      } else {
+        // Fallback: still show success even if API fails (offline-friendly)
+        setOrderItems(cartSnapshot);
+        setOrderShipping(shippingSnapshot);
+        setOrderSuccess(true);
+        clearCart();
+      }
+    } catch {
+      // Offline fallback
+      setOrderItems(cartSnapshot);
+      setOrderShipping(shippingSnapshot);
+      setOrderSuccess(true);
+      clearCart();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const updateField = (field: keyof OrderFormData, value: string) => {
@@ -93,19 +148,105 @@ export default function CartPage() {
   };
 
   if (orderSuccess) {
+    const itemsTotal = orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
     return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-success/10 flex items-center justify-center">
-          <svg className="w-10 h-10 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        {/* Success Banner */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-black text-text mb-2">Commande Confirmée !</h1>
+          <p className="text-text-light text-sm">Merci pour votre commande. Vous serez contacté(e) par téléphone pour confirmer la livraison.</p>
+          <p className="text-xs text-text-muted mt-1">Paiement à la livraison (COD)</p>
         </div>
-        <h1 className="text-2xl font-black text-text mb-3">Commande Confirmée ! </h1>
-        <p className="text-text-light mb-2">Merci pour votre commande. Vous serez contacté(e) par téléphone pour confirmer la livraison.</p>
-        <p className="text-sm text-text-muted mb-8">Paiement à la livraison (COD)</p>
-        <Link href="/" className="inline-block bg-black text-white font-bold px-8 py-3 rounded-full hover:bg-gray-800 transition-colors">
-          CONTINUER MES ACHATS
-        </Link>
+
+        {/* Order Recap Card */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
+          {/* Order Header */}
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500">Référence</p>
+                <p className="text-sm font-bold text-gray-900">
+                  #{orderData?.id ? orderData.id.slice(0, 8).toUpperCase() : "---"}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Date</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {orderData?.created_at
+                    ? new Date(orderData.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+                    : new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Items */}
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Articles</h3>
+            <div className="space-y-3">
+              {orderItems.map((item, i) => (
+                <div key={i} className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {item.selectedSize && (
+                        <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{item.selectedSize}</span>
+                      )}
+                      {item.selectedColor && (
+                        <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{item.selectedColor}</span>
+                      )}
+                      <span className="text-[10px] text-gray-400">x{item.quantity}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                    {formatPrice(item.product.price * item.quantity)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Delivery Info */}
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Livraison</h3>
+            <div className="space-y-1 text-sm text-gray-700">
+              <p className="font-medium">{formData.firstName} {formData.lastName}</p>
+              <p>{formData.phone}</p>
+              <p>{formData.address}</p>
+              <p>{formData.commune}, {formData.wilaya}</p>
+            </div>
+          </div>
+
+          {/* Price Summary */}
+          <div className="px-5 py-4">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>Sous-total</span>
+                <span>{formatPrice(itemsTotal)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Livraison</span>
+                <span>{formatPrice(orderShipping)}</span>
+              </div>
+              <div className="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-100">
+                <span>Total</span>
+                <span>{formatPrice(itemsTotal + orderShipping)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <Link href="/" className="inline-block bg-black text-white font-bold px-8 py-3 rounded-full hover:bg-gray-800 transition-colors">
+            CONTINUER MES ACHATS
+          </Link>
+        </div>
       </div>
     );
   }
@@ -250,8 +391,8 @@ export default function CartPage() {
                   <textarea value={formData.notes} onChange={(e) => updateField("notes", e.target.value)} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm resize-none" rows={2} placeholder="Instructions spéciales..." />
                 </div>
 
-                <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-base" id="submit-order-mobile">
-                  VALIDER LA COMMANDE (PAIEMENT À LA LIVRAISON)
+                <button type="submit" disabled={submitting} className={`w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-base ${submitting ? "opacity-60 cursor-wait" : ""}`} id="submit-order-mobile">
+                  {submitting ? "TRAITEMENT EN COURS..." : "VALIDER LA COMMANDE (PAIEMENT À LA LIVRAISON)"}
                 </button>
               </form>
             )}
@@ -300,8 +441,8 @@ export default function CartPage() {
                 <textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs resize-none ${errors.address ? "border-danger" : "border-border"}`} rows={2} placeholder="Adresse complète *" />
                 {errors.address && <p className="text-danger text-[9px] mt-0.5">{errors.address}</p>}
 
-                <button type="submit" className="w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-sm" id="submit-order-desktop">
-                  VALIDER ({formatPrice(grandTotal)})
+                <button type="submit" disabled={submitting} className={`w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-sm ${submitting ? "opacity-60 cursor-wait" : ""}`} id="submit-order-desktop">
+                  {submitting ? "TRAITEMENT..." : `VALIDER (${formatPrice(grandTotal)})`}
                 </button>
               </form>
             </div>

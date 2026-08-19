@@ -5,6 +5,7 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
 import { useState, useEffect, useRef } from "react";
 import type { Category } from "@/lib/types";
+import { buildNavLinks, isNavLinkActive } from "@/lib/navLinks";
 
 export function Header() {
   const pathname = usePathname();
@@ -70,24 +71,11 @@ export function Header() {
   }, [pathname, searchParams]);
 
   function isActive(link: { href: string; slug: string | null; label: string }) {
-    if (link.href === "/") return !activeCat && !activeFilter;
-    if (link.slug && activeCat === link.slug) return true;
-    if (link.label === "NOUVEAUTES" && activeFilter === "new") return true;
-    if (link.label === "PROMOTIONS" && pathname === "/promotions") return true;
-    return false;
+    return isNavLinkActive(link, activeCat, activeFilter, pathname);
   }
 
-  // Build dynamic nav links
-  const navLinks: { label: string; href: string; slug: string | null }[] = [
-    { label: "ACCUEIL", href: "/", slug: null },
-    { label: "NOUVEAUTES", href: "/?filter=new", slug: null },
-    ...headerCategories.map((c) => ({
-      label: c.name.toUpperCase(),
-      href: `/?cat=${c.slug}`,
-      slug: c.slug,
-    })),
-    { label: "PROMOTIONS", href: "/promotions", slug: null },
-  ];
+  // Build dynamic nav links (shared with MobileHeader)
+  const navLinks = buildNavLinks(headerCategories);
 
   const iconColor = active ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white";
 

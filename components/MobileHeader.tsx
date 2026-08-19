@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
 import type { Category } from "@/lib/types";
+import { buildNavLinks, isNavLinkActive } from "@/lib/navLinks";
 
 export function MobileHeader() {
   const router = useRouter();
@@ -58,25 +59,10 @@ export function MobileHeader() {
     }
   }, [searchOpen]);
 
-  const navLinks = [
-    { label: "ACCUEIL", href: "/", slug: null as string | null },
-    { label: "NOUVEAUTÉS", href: "/?filter=new", slug: null as string | null },
-    { label: "MEILLEURES VENTES", href: "/best-sellers", slug: null as string | null },
-    ...headerCategories.map((c) => ({
-      label: c.name.toUpperCase(),
-      href: `/?cat=${c.slug}`,
-      slug: c.slug,
-    })),
-    { label: "PROMOTIONS", href: "/promotions", slug: null as string | null },
-  ];
+  const navLinks = buildNavLinks(headerCategories);
 
   function isActive(link: { href: string; slug: string | null; label: string }) {
-    if (link.href === "/") return !activeCat && !activeFilter;
-    if (link.slug && activeCat === link.slug) return true;
-    if (link.label === "NOUVEAUTÉS" && activeFilter === "new") return true;
-    if (link.label === "PROMOTIONS" && pathname === "/promotions") return true;
-    if (link.label === "MEILLEURES VENTES" && pathname === "/best-sellers") return true;
-    return false;
+    return isNavLinkActive(link, activeCat, activeFilter, pathname);
   }
 
   const handleSearch = (e: React.FormEvent) => {
