@@ -381,10 +381,10 @@ export default function AdminFlashSales() {
               <div className="divide-y divide-gray-50 max-h-[400px] overflow-y-auto">
                 {flashProducts.map((p) => (
                   <div key={p.id} className="px-5 py-3 flex items-center gap-3">
-                    {p.images?.[0] && (
+                    {(() => { const raw = p.images?.[0]; const src = typeof raw === "string" ? raw : raw?.url; return src ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.images[0]} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-gray-100" />
-                    )}
+                      <img src={src} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-gray-100" />
+                    ) : null; })()}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
                       <p className="text-xs text-gray-400">

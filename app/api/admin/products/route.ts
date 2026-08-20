@@ -34,6 +34,29 @@ export async function POST(req: Request) {
     }
   }
 
+  // ── Guard-rail: validate & normalize images before saving ──
+  let images = body.images || [];
+  if (Array.isArray(images)) {
+    images = images.map((img: unknown) => {
+      if (typeof img === "string") return { url: img, colorTags: [] };
+      if (typeof img === "object" && img !== null) {
+        const obj = img as Record<string, unknown>;
+        return {
+          url: typeof obj.url === "string" ? obj.url : "",
+          colorTags: Array.isArray(obj.colorTags) ? obj.colorTags : [],
+        };
+      }
+      return { url: "", colorTags: [] };
+    });
+    const emptyUrls = images.filter((img: { url: string }) => !img.url);
+    if (emptyUrls.length > 0) {
+      return NextResponse.json(
+        { error: `Impossible de créer : ${emptyUrls.length} image(s) ont une URL vide.` },
+        { status: 400 }
+      );
+    }
+  }
+
   const { data, error } = await supabaseAdmin
     .from("products")
     .insert({
@@ -42,7 +65,7 @@ export async function POST(req: Request) {
       description: body.description || "",
       price: body.price,
       old_price: body.old_price || null,
-      images: body.images || [],
+      images,
       category_id: body.category_id || null,
       attributes: body.attributes || [],
       sizes: body.sizes || [],

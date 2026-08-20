@@ -91,11 +91,15 @@ export function SearchBar() {
                 onClick={() => { setIsOpen(false); setQuery(""); }}
               >
                 <div className="w-11 h-11 rounded-lg flex-shrink-0 overflow-hidden relative bg-gray-100">
-                  {product.images?.[0] ? (
-                    <Image src={product.images[0]} alt={product.name} fill loader={cloudinaryLoader} className="object-cover" sizes="44px" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-primary text-[10px] font-bold">IMG</div>
-                  )}
+                  {(() => {
+                    const raw = product.images?.[0];
+                    const src = typeof raw === "string" ? raw : raw?.url;
+                    return src ? (
+                      <Image src={src} alt={product.name} fill loader={cloudinaryLoader} className="object-cover" sizes="44px" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-primary text-[10px] font-bold">IMG</div>
+                    );
+                  })()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-text truncate">{product.name}</p>

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Product, Category } from "@/lib/types";
+import type { Product, Category, ProductImage } from "@/lib/types";
+import { normalizeImages } from "@/lib/attributeUtils";
 
 // ── Server-side Supabase client (uses anon key, read-only) ──
 // This file MUST only be imported in Server Components or API routes.
@@ -9,6 +10,17 @@ const supabase = createClient(
 );
 
 const isDev = process.env.NODE_ENV === "development";
+
+/**
+ * Normalize a raw product from Supabase: ensures images is ProductImage[].
+ * Handles both old string[] format and new ProductImage[] format.
+ */
+function normalizeProduct(p: Record<string, unknown>): Product {
+  return {
+    ...p,
+    images: normalizeImages(p.images as (string | ProductImage)[] | undefined),
+  } as Product;
+}
 
 // ── Fallback imports for development mode ──
 async function getMockFallback() {
@@ -129,7 +141,7 @@ export async function getProducts(opts: GetProductsOptions = {}): Promise<Produc
     const { data, error } = await query;
 
     if (error) throw error;
-    if (data && data.length > 0) return data as Product[];
+    if (data && data.length > 0) return (data as Record<string, unknown>[]).map(normalizeProduct);
 
     // Dev fallback
     const mock = await getMockFallback();
@@ -164,7 +176,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       .single();
 
     if (error && error.code !== "PGRST116") throw error; // PGRST116 = not found
-    if (data) return data as Product;
+    if (data) return normalizeProduct(data as Record<string, unknown>);
 
     // Dev fallback
     const mock = await getMockFallback();
@@ -211,7 +223,7 @@ export async function getRelatedProducts(product: { id: string; category_id: str
       .limit(limit);
 
     if (error) throw error;
-    return (data as Product[]) || [];
+    return ((data as Record<string, unknown>[]) || []).map(normalizeProduct);
   } catch (err) {
     console.error("[supabase-data] getRelatedProducts error:", err);
     return [];
@@ -251,7 +263,7 @@ export async function getSearchIndex(): Promise<SearchIndexItem[]> {
         slug: p.slug,
         price: p.price,
         old_price: p.old_price,
-        thumbnail: p.images?.[0] || "",
+        thumbnail: (typeof p.images?.[0] === "string" ? p.images[0] : p.images?.[0]?.url) || "",
         category_id: p.category_id,
       }));
     }
@@ -264,7 +276,7 @@ export async function getSearchIndex(): Promise<SearchIndexItem[]> {
         slug: p.slug,
         price: p.price,
         old_price: p.old_price,
-        thumbnail: p.images?.[0] || "",
+        thumbnail: (typeof p.images?.[0] === "string" ? p.images[0] : p.images?.[0]?.url) || "",
         category_id: p.category_id,
       }));
     }

@@ -71,7 +71,7 @@ async function generate() {
         slug: p.slug,
         price: p.price,
         old_price: p.old_price,
-        thumbnail: p.images?.[0] || "",
+        thumbnail: (typeof p.images?.[0] === "string" ? p.images[0] : p.images?.[0]?.url) || "",
         category_id: p.category_id,
       }));
       console.log(`[search-index] Loaded ${items.length} products from mock data`);

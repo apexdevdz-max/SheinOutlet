@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import type { Product, Category, Banner, SiteSettings } from "@/lib/types";
+import type { Product, Category, Banner, SiteSettings, ProductImage } from "@/lib/types";
+import { normalizeImages } from "@/lib/attributeUtils";
 import { toast } from "@/lib/store/useToastStore";
 
 /* ── Default settings (used before fetch completes) ── */
@@ -83,7 +84,7 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       ]);
 
       set({
-        products: Array.isArray(products) ? products : [],
+        products: Array.isArray(products) ? products.map((p: Record<string, unknown>) => ({ ...p, images: normalizeImages(p.images as (string | ProductImage)[] | undefined) } as Product)) : [],
         categories: Array.isArray(categories) ? categories : [],
         banners: Array.isArray(banners) ? banners : [],
         loading: false,

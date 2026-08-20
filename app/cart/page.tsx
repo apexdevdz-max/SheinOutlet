@@ -102,7 +102,7 @@ export default function CartPage() {
           items: cartSnapshot.map((item) => ({
             product_id: item.product.id,
             product_name: item.product.name,
-            product_image: item.product.images?.[0] || "",
+            product_image: item.product.images?.[0]?.url || "",
             quantity: item.quantity,
             size: item.selectedSize,
             color: item.selectedColor,

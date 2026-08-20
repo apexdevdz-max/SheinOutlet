@@ -4,8 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { ImageCropEditor } from "@/components/admin/ImageCropEditor";
-import type { Product, Category, CategoryAttributeTemplate, ProductAttribute, ProductAttributeValue } from "@/lib/types";
-import { normalizeAttributes, isColorAttribute, extractPlainValues } from "@/lib/attributeUtils";
+import type { Product, Category, CategoryAttributeTemplate, ProductAttribute, ProductAttributeValue, ProductImage } from "@/lib/types";
+import { normalizeAttributes, normalizeImages, isColorAttribute, extractPlainValues } from "@/lib/attributeUtils";
 
 /* ══════════════════════════════════════════════════════════ */
 /*  Shared UI Components                                     */
@@ -37,9 +37,11 @@ const PRODUCT_ASPECT_RATIO = 3 / 4; // Portrait 3:4 — matches ProductCard disp
 function MediaUploader({
   images,
   onChange,
+  colorNames = [],
 }: {
-  images: string[];
-  onChange: (urls: string[]) => void;
+  images: ProductImage[];
+  onChange: (imgs: ProductImage[]) => void;
+  colorNames?: string[];
 }) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -80,7 +82,8 @@ function MediaUploader({
 
         const { urls } = await res.json();
         if (Array.isArray(urls) && urls.length > 0) {
-          onChange([...images, ...urls]);
+          const newImgs: ProductImage[] = urls.map((url: string) => ({ url, colorTags: [] }));
+          onChange([...images, ...newImgs]);
         }
       } catch {
         alert("Erreur lors de l'upload");
@@ -113,7 +116,8 @@ function MediaUploader({
 
         const { urls } = await res.json();
         if (Array.isArray(urls)) {
-          onChange([...images, ...urls]);
+          const newImgs: ProductImage[] = urls.map((url: string) => ({ url, colorTags: [] }));
+          onChange([...images, ...newImgs]);
         }
       } catch {
         alert("Erreur lors de l'upload des fichiers");
@@ -188,6 +192,21 @@ function MediaUploader({
     onChange(reordered);
   }
 
+  function toggleColorTag(imgIndex: number, color: string) {
+    const updated = images.map((img, i) => {
+      if (i !== imgIndex) return img;
+      const lower = color.toLowerCase();
+      const has = img.colorTags.some(t => t.toLowerCase() === lower);
+      return {
+        ...img,
+        colorTags: has
+          ? img.colorTags.filter(t => t.toLowerCase() !== lower)
+          : [...img.colorTags, color],
+      };
+    });
+    onChange(updated);
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -204,39 +223,65 @@ function MediaUploader({
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
-                {images.map((url, i) => (
-                  <Draggable key={`img-${i}-${url}`} draggableId={`img-${i}-${url}`} index={i}>
+                {images.map((imgObj, i) => (
+                  <Draggable key={`img-${i}-${imgObj.url}`} draggableId={`img-${i}-${imgObj.url}`} index={i}>
                     {(dragProvided, snapshot) => (
                       <div
                         ref={dragProvided.innerRef}
                         {...dragProvided.draggableProps}
                         {...dragProvided.dragHandleProps}
-                        className={`relative group w-20 h-20 rounded-lg overflow-hidden border bg-gray-50 cursor-grab active:cursor-grabbing transition-all ${
+                        className={`relative group rounded-lg overflow-hidden border bg-gray-50 cursor-grab active:cursor-grabbing transition-all ${
                           snapshot.isDragging
                             ? "ring-2 ring-pink-400 shadow-lg opacity-90 scale-105"
                             : "border-gray-200 hover:border-pink-300"
                         } ${i === 0 ? "ring-2 ring-pink-500" : ""}`}
+                        style={{ width: colorNames.length > 0 ? "5.5rem" : "5rem" }}
                       >
-                        {url.includes("/video/") ? (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div className="w-full aspect-square overflow-hidden">
+                          {imgObj.url.includes("/video/") ? (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={imgObj.url} alt="" className="w-full h-full object-cover" />
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                          >
+                            x
+                          </button>
+                          <span className={`absolute bottom-0 left-0 right-0 text-white text-[8px] text-center py-0.5 transition-opacity ${
+                            i === 0 ? "bg-pink-500 opacity-100 font-bold" : "bg-black/50 opacity-0 group-hover:opacity-100"
+                          }`}>
+                            {i === 0 ? "Principale" : i + 1}
+                          </span>
+                        </div>
+                        {/* Color tag checkboxes */}
+                        {colorNames.length > 0 && !imgObj.url.includes("/video/") && (
+                          <div className="flex flex-wrap gap-0.5 px-1 py-1 bg-white border-t border-gray-100">
+                            {colorNames.map((color) => {
+                              const tagged = imgObj.colorTags.some(t => t.toLowerCase() === color.toLowerCase());
+                              return (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); toggleColorTag(i, color); }}
+                                  className={`text-[7px] leading-tight px-1 py-0.5 rounded border transition-all truncate max-w-full ${
+                                    tagged
+                                      ? "bg-pink-500 text-white border-pink-500 font-semibold"
+                                      : "bg-gray-50 text-gray-400 border-gray-200 hover:border-pink-300"
+                                  }`}
+                                  title={tagged ? `Retirer "${color}"` : `Taguer "${color}"`}
+                                >
+                                  {color}
+                                </button>
+                              );
+                            })}
                           </div>
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={url} alt="" className="w-full h-full object-cover" />
                         )}
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                          className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                        >
-                          x
-                        </button>
-                        <span className={`absolute bottom-0 left-0 right-0 text-white text-[8px] text-center py-0.5 transition-opacity ${
-                          i === 0 ? "bg-pink-500 opacity-100 font-bold" : "bg-black/50 opacity-0 group-hover:opacity-100"
-                        }`}>
-                          {i === 0 ? "Principale" : i + 1}
-                        </span>
                       </div>
                     )}
                   </Draggable>
@@ -306,7 +351,7 @@ function MediaUploader({
                 e.preventDefault();
                 const input = e.target as HTMLInputElement;
                 if (input.value.trim()) {
-                  onChange([...images, input.value.trim()]);
+                  onChange([...images, { url: input.value.trim(), colorTags: [] }]);
                   input.value = "";
                 }
               }
@@ -318,7 +363,7 @@ function MediaUploader({
             onClick={() => {
               const input = document.getElementById("manual-url-input") as HTMLInputElement;
               if (input?.value.trim()) {
-                onChange([...images, input.value.trim()]);
+                onChange([...images, { url: input.value.trim(), colorTags: [] }]);
                 input.value = "";
               }
             }}
@@ -374,10 +419,10 @@ function ProductModal({
     // Fallback: build from legacy sizes/colors
     const attrs: ProductAttribute[] = [];
     if (product?.sizes && product.sizes.length > 0) {
-      attrs.push({ label: product.sizes_label || "Taille", values: product.sizes.map(s => ({ value: s, available: true, imageUrl: null })) });
+      attrs.push({ label: product.sizes_label || "Taille", values: product.sizes.map(s => ({ value: s, available: true })) });
     }
     if (product?.colors && product.colors.length > 0) {
-      attrs.push({ label: "Couleur", values: product.colors.map(c => ({ value: c, available: true, imageUrl: null })) });
+      attrs.push({ label: "Couleur", values: product.colors.map(c => ({ value: c, available: true })) });
     }
     return attrs;
   }
@@ -388,7 +433,7 @@ function ProductModal({
     description: product?.description || "",
     price: product?.price || 0,
     old_price: product?.old_price || 0,
-    images: product?.images || [] as string[],
+    images: normalizeImages(product?.images as unknown as (string | ProductImage)[]),
     parentCategoryId: currentParentId,
     category_id: product?.category_id || "",
     stock: product?.stock || 50,
@@ -461,7 +506,7 @@ function ProductModal({
     if (!valueStr.trim()) return;
     setAttributes(attributes.map((a, i) =>
       i === attrIdx
-        ? { ...a, values: [...a.values, { value: valueStr.trim(), available: true, imageUrl: null }] }
+        ? { ...a, values: [...a.values, { value: valueStr.trim(), available: true }] }
         : a
     ));
   }
@@ -482,13 +527,7 @@ function ProductModal({
     ));
   }
 
-  function setValueImage(attrIdx: number, valueIdx: number, imageUrl: string | null) {
-    setAttributes(attributes.map((a, i) =>
-      i === attrIdx
-        ? { ...a, values: a.values.map((v, vi) => vi === valueIdx ? { ...v, imageUrl } : v) }
-        : a
-    ));
-  }
+  // (setValueImage removed — color images now managed via colorTags on gallery images)
 
   // Check if a template is already applied
   function isTemplateApplied(tpl: CategoryAttributeTemplate): boolean {
@@ -508,7 +547,7 @@ function ProductModal({
       removeAttribute(existingIdx);
     } else {
       // Add it with enriched values
-      addAttribute(tpl.attribute_name, tpl.attribute_values.map(v => ({ value: v, available: true, imageUrl: null })));
+      addAttribute(tpl.attribute_name, tpl.attribute_values.map(v => ({ value: v, available: true })));
     }
   }
 
@@ -732,7 +771,8 @@ function ProductModal({
           {/* ── Media Upload ── */}
           <MediaUploader
             images={form.images}
-            onChange={(urls) => setForm({ ...form, images: urls })}
+            onChange={(imgs) => setForm({ ...form, images: imgs })}
+            colorNames={attributes.find(a => isColorAttribute(a.label))?.values.map(v => v.value) || []}
           />
 
           {/* ══════ DYNAMIC ATTRIBUTES ══════ */}
@@ -777,19 +817,18 @@ function ProductModal({
                           <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${v.available ? "left-4" : "left-0.5"}`} />
                         </button>
 
-                        {/* Color image button */}
+                        {/* Color tag count indicator */}
                         {isColor && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const url = prompt("URL de l'image pour cette couleur :", v.imageUrl || "");
-                              if (url !== null) setValueImage(idx, vi, url || null);
-                            }}
-                            className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-colors ${v.imageUrl ? "bg-blue-100 text-blue-600" : "text-gray-300 hover:text-gray-500"}`}
-                            title={v.imageUrl ? `Image : ${v.imageUrl.substring(0, 40)}...` : "Ajouter une image"}
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
+                              form.images.some(img => img.colorTags.some(t => t.toLowerCase() === v.value.toLowerCase()))
+                                ? "bg-blue-100 text-blue-600 font-medium"
+                                : "text-gray-300"
+                            }`}
+                            title={`${form.images.filter(img => img.colorTags.some(t => t.toLowerCase() === v.value.toLowerCase())).length} image(s) taguée(s)`}
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v14.25a1.5 1.5 0 001.5 1.5z" /></svg>
-                          </button>
+                            🖼 {form.images.filter(img => img.colorTags.some(t => t.toLowerCase() === v.value.toLowerCase())).length}
+                          </span>
                         )}
 
                         {/* Remove value */}
@@ -1454,10 +1493,10 @@ export default function AdminProducts() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-                          {p.images[0] && (
+                          {(() => { const raw = p.images?.[0]; const src = typeof raw === "string" ? raw : raw?.url; return src ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
-                          )}
+                            <img src={src} alt={p.name} className="w-full h-full object-cover" />
+                          ) : null; })()}
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-gray-900 truncate max-w-[200px]">{p.name}</p>

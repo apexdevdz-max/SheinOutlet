@@ -7,8 +7,8 @@ import Image from "next/image";
 import cloudinaryLoader from "@/lib/cloudinary";
 import { useStore } from "@/lib/store/useStore";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
-import type { Product, ProductAttributeValue } from "@/lib/types";
-import { normalizeAttributes, isColorAttribute } from "@/lib/attributeUtils";
+import type { Product, ProductAttributeValue, ProductImage } from "@/lib/types";
+import { normalizeAttributes, normalizeImages, isColorAttribute, getImagesForColor, getColorThumbnail } from "@/lib/attributeUtils";
 import { ProductCard } from "@/components/ProductCard";
 
 /* ── Related Products Carousel ── */
@@ -61,16 +61,15 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
   const { addToCart, toggleFavorite, isFavorite } = useStore();
   const router = useRouter();
 
-  // Image gallery state
-  const allImages = product.images && product.images.length > 0 ? product.images : [];
-  const [selectedImage, setSelectedImage] = useState(0);
+  // Normalize images to ProductImage[] format
+  const productImages: ProductImage[] = normalizeImages(product.images as unknown as (string | ProductImage)[]);
 
   // Build display attributes: prefer attributes array, fallback to legacy
   const displayAttrs = (product.attributes && product.attributes.length > 0)
     ? normalizeAttributes(product.attributes as unknown as { label: string; values: (string | ProductAttributeValue)[] }[])
     : [
-        ...(product.sizes?.length > 0 ? [{ label: product.sizes_label || "Taille", values: product.sizes.map(s => ({ value: s, available: true, imageUrl: null })) }] : []),
-        ...(product.colors?.length > 0 ? [{ label: "Couleur", values: product.colors.map(c => ({ value: c, available: true, imageUrl: null })) }] : []),
+        ...(product.sizes?.length > 0 ? [{ label: product.sizes_label || "Taille", values: product.sizes.map(s => ({ value: s, available: true })) }] : []),
+        ...(product.colors?.length > 0 ? [{ label: "Couleur", values: product.colors.map(c => ({ value: c, available: true })) }] : []),
       ];
 
   // Track selected value per attribute (keyed by label) — only pick available values
@@ -82,6 +81,17 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
     });
     return init;
   });
+
+  // Get the selected color name (if any color attribute exists)
+  const colorAttr = displayAttrs.find(a => isColorAttribute(a.label));
+  const selectedColor = colorAttr ? selections[colorAttr.label] || "" : "";
+
+  // Filter gallery images by selected color
+  const galleryImages = selectedColor
+    ? getImagesForColor(productImages, selectedColor)
+    : productImages;
+
+  const [selectedImage, setSelectedImage] = useState(0);
 
   const [quantity, setQuantity] = useState(1);
   const [showPopup, setShowPopup] = useState(false);
@@ -123,9 +133,9 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
         <div className="relative">
           {/* Main image */}
           <div className="aspect-[3/4] overflow-hidden bg-gradient-to-br from-primary-light to-pink-100 flex items-center justify-center relative">
-            {allImages.length > 0 ? (
+            {galleryImages.length > 0 ? (
               <Image
-                src={allImages[selectedImage]}
+                src={galleryImages[selectedImage >= galleryImages.length ? 0 : selectedImage]?.url || ""}
                 alt={product.name}
                 fill
                 priority
@@ -146,21 +156,21 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
           </div>
 
           {/* Thumbnails */}
-          {allImages.length > 1 && (
+          {galleryImages.length > 1 && (
             <div className="flex gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-              {allImages.map((img, i) => (
+              {galleryImages.map((imgObj, i) => (
                 <button
-                  key={i}
+                  key={imgObj.url}
                   onClick={() => setSelectedImage(i)}
                   onMouseEnter={() => setSelectedImage(i)}
                   className={`flex-shrink-0 w-16 h-20 md:w-20 md:h-24 overflow-hidden border-2 transition-all ${
-                    selectedImage === i
+                    (selectedImage >= galleryImages.length ? 0 : selectedImage) === i
                       ? "border-primary shadow-md shadow-primary/20"
                       : "border-transparent hover:border-gray-300"
                   }`}
                 >
                   <Image
-                    src={img}
+                    src={imgObj.url}
                     alt={`${product.name} - ${i + 1}`}
                     width={80}
                     height={100}
@@ -221,43 +231,88 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               <h3 className="text-sm font-bold text-text mb-2">
                 {attr.label} : <span className="font-normal text-text-light">{selections[attr.label] || ""}</span>
               </h3>
-              <div className="flex gap-2 flex-wrap">
-                {attr.values.map((attrVal) => {
-                  const isSelected = selections[attr.label] === attrVal.value;
-                  const isAvailable = attrVal.available;
 
-                  return (
-                    <button
-                      key={attrVal.value}
-                      disabled={!isAvailable}
-                      title={!isAvailable ? "Indisponible" : undefined}
-                      onClick={() => {
-                        if (!isAvailable) return;
-                        setSelections({ ...selections, [attr.label]: attrVal.value });
-                        // Switch main image for color attributes with imageUrl
-                        if (isColor && attrVal.imageUrl) {
-                          const imgIdx = allImages.indexOf(attrVal.imageUrl);
-                          if (imgIdx >= 0) {
-                            setSelectedImage(imgIdx);
-                          } else {
-                            // Image not in allImages — it's a color-specific image, prepend logic
-                            setSelectedImage(0);
-                          }
-                        }
-                      }}
-                      className={`px-4 py-2 rounded-full text-sm border transition-all ${
-                        !isAvailable
-                          ? "border-gray-200 text-gray-300 line-through cursor-not-allowed opacity-50 bg-gray-50"
-                          : isSelected
-                            ? "border-primary bg-primary-light text-primary font-medium"
-                            : "border-border text-text-light hover:border-primary/50"
-                      }`}
-                    >
-                      {attrVal.value}
-                    </button>
-                  );
-                })}
-              </div>
+              {isColor ? (
+                /* ── Color vignettes (Gymshark style) ── */
+                <div className="flex gap-2 flex-wrap">
+                  {attr.values.map((attrVal) => {
+                    const isSelected = selections[attr.label] === attrVal.value;
+                    const isAvailable = attrVal.available;
+                    const thumb = getColorThumbnail(productImages, attrVal.value);
+
+                    return (
+                      <button
+                        key={attrVal.value}
+                        disabled={!isAvailable}
+                        title={!isAvailable ? `${attrVal.value} — Indisponible` : attrVal.value}
+                        onClick={() => {
+                          if (!isAvailable) return;
+                          setSelections({ ...selections, [attr.label]: attrVal.value });
+                          setSelectedImage(0);
+                        }}
+                        className={`relative w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                          !isAvailable
+                            ? "border-gray-200 cursor-not-allowed opacity-50"
+                            : isSelected
+                              ? "border-primary ring-2 ring-primary/30 shadow-md"
+                              : "border-gray-200 hover:border-primary/50"
+                        }`}
+                        aria-label={attrVal.value}
+                      >
+                        {thumb ? (
+                          <Image
+                            src={thumb.url}
+                            alt={attrVal.value}
+                            width={64}
+                            height={64}
+                            loader={cloudinaryLoader}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[9px] text-gray-400 font-medium text-center px-0.5 leading-tight">
+                            {attrVal.value}
+                          </div>
+                        )}
+                        {/* Greyed overlay for unavailable */}
+                        {!isAvailable && (
+                          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                            <div className="w-full h-px bg-gray-400 rotate-45 origin-center" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* ── Non-color chips (text buttons) ── */
+                <div className="flex gap-2 flex-wrap">
+                  {attr.values.map((attrVal) => {
+                    const isSelected = selections[attr.label] === attrVal.value;
+                    const isAvailable = attrVal.available;
+
+                    return (
+                      <button
+                        key={attrVal.value}
+                        disabled={!isAvailable}
+                        title={!isAvailable ? "Indisponible" : undefined}
+                        onClick={() => {
+                          if (!isAvailable) return;
+                          setSelections({ ...selections, [attr.label]: attrVal.value });
+                        }}
+                        className={`px-4 py-2 rounded-full text-sm border transition-all ${
+                          !isAvailable
+                            ? "border-gray-200 text-gray-300 line-through cursor-not-allowed opacity-50 bg-gray-50"
+                            : isSelected
+                              ? "border-primary bg-primary-light text-primary font-medium"
+                              : "border-border text-text-light hover:border-primary/50"
+                        }`}
+                      >
+                        {attrVal.value}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             );
           })}
@@ -369,9 +424,9 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
             {/* Product Info */}
             <div className="px-6 py-6 flex gap-4 border-b border-gray-100">
               <div className="w-20 h-24 bg-gray-100 flex-shrink-0 overflow-hidden">
-                {allImages[0] && (
+                {productImages[0] && (
                   <Image
-                    src={allImages[0]}
+                    src={productImages[0].url}
                     alt={product.name}
                     width={80}
                     height={96}

@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "fr_DZ",
       url: canonical,
       images: product.images[0]
-        ? [{ url: product.images[0], width: 600, height: 800, alt: product.name }]
+        ? [{ url: product.images[0].url, width: 600, height: 800, alt: product.name }]
         : [],
     },
   };
@@ -46,13 +46,13 @@ export async function generateStaticParams() {
 }
 
 // JSON-LD Schema.org Product structured data
-function ProductJsonLd({ product }: { product: { name: string; slug: string; description: string; price: number; old_price: number | null; images: string[]; stock: number } }) {
+function ProductJsonLd({ product }: { product: { name: string; slug: string; description: string; price: number; old_price: number | null; images: { url: string }[]; stock: number } }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: product.images[0] || undefined,
+    image: product.images[0]?.url || undefined,
     url: `${SITE_URL}/product/${product.slug}`,
     brand: {
       "@type": "Brand",

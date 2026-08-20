@@ -11,12 +11,16 @@ export interface Category {
 export interface ProductAttributeValue {
   value: string;
   available: boolean;
-  imageUrl?: string | null;
 }
 
 export interface ProductAttribute {
   label: string;
   values: ProductAttributeValue[];
+}
+
+export interface ProductImage {
+  url: string;
+  colorTags: string[];
 }
 
 export interface Product {
@@ -26,7 +30,7 @@ export interface Product {
   description: string;
   price: number;
   old_price: number | null;
-  images: string[];
+  images: ProductImage[];
   category_id: string | null;
   attributes: ProductAttribute[];
   // Legacy fields (kept for backward compat, derived from attributes)

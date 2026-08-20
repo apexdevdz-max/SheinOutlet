@@ -5,33 +5,41 @@ import Image from "next/image";
 import cloudinaryLoader from "@/lib/cloudinary";
 import { useStore } from "@/lib/store/useStore";
 import { formatPrice, getDiscountPercent } from "@/lib/data";
-import type { Product } from "@/lib/types";
+import type { Product, ProductImage } from "@/lib/types";
+
+// Defensive URL extraction — handles both old string[] and new ProductImage[] formats
+function getUrl(img: string | ProductImage | undefined): string {
+  if (!img) return "";
+  return typeof img === "string" ? img : img.url || "";
+}
 
 export function ProductCard({ product }: { product: Product }) {
   const { toggleFavorite, isFavorite } = useStore();
   const discount = getDiscountPercent(product.price, product.old_price);
   const fav = isFavorite(product.id);
-
+  
+  const img0 = getUrl(product.images?.[0]);
+  const img1 = getUrl(product.images?.[1]);
   return (
     <div className="product-card group relative bg-white overflow-hidden border border-border/50" id={`product-${product.slug}`}>
       {/* Image */}
       <Link href={`/product/${product.slug}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-50">
         <div className="w-full h-full bg-gradient-to-br from-primary-light to-pink-100 flex items-center justify-center relative">
-          {product.images && product.images.length > 0 ? (
+          {img0 ? (
             <>
               {/* Primary image */}
               <Image
-                src={product.images[0]}
+                src={img0}
                 alt={product.name}
                 fill
                 loader={cloudinaryLoader}
-                className={`object-cover transition-all duration-500 ${product.images.length > 1 ? "group-hover:opacity-0" : "group-hover:scale-105"}`}
+                className={`object-cover transition-all duration-500 ${img1 ? "group-hover:opacity-0" : "group-hover:scale-105"}`}
                 sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 180px"
               />
               {/* Hover image (second image) */}
-              {product.images.length > 1 && (
+              {img1 && (
                 <Image
-                  src={product.images[1]}
+                  src={img1}
                   alt={`${product.name} - vue 2`}
                   fill
                   loader={cloudinaryLoader}

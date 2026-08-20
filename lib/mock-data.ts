@@ -1,8 +1,12 @@
-import type { Product, Category, ProductAttributeValue } from "@/lib/types";
+import type { Product, Category, ProductAttributeValue, ProductImage } from "@/lib/types";
 
 // Helper to create attribute values from strings for mock data
 const v = (...vals: string[]): ProductAttributeValue[] =>
-  vals.map(value => ({ value, available: true, imageUrl: null }));
+  vals.map(value => ({ value, available: true }));
+
+// Helper to create product images from URLs for mock data
+const img = (...urls: string[]): ProductImage[] =>
+  urls.map(url => ({ url, colorTags: [] }));
 
 // Demo categories
 export const MOCK_CATEGORIES: Category[] = [
@@ -34,7 +38,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Robe élégante en tissu fluide, coupe ajustée avec finitions soignées. Parfaite pour les occasions spéciales et les soirées.",
     price: 1800,
     old_price: 3000,
-    images: ["https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80"),
     category_id: "5",
     sizes: ["S", "M", "L", "XL"],
     sizes_label: "Taille",
@@ -52,7 +56,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Lunettes de soleil style aviateur avec verres polarisés et monture dorée légère. Protection UV400.",
     price: 350,
     old_price: 700,
-    images: ["https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80"),
     category_id: "17",
     sizes: ["Unique"],
     sizes_label: "Taille",
@@ -70,7 +74,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Sac à main élégant avec chaîne dorée, cuir synthétique premium. Compartiment principal spacieux avec poche intérieure zippée.",
     price: 1400,
     old_price: 2000,
-    images: ["https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=800&q=80"),
     category_id: "16",
     sizes: ["Unique"],
     sizes_label: "Taille",
@@ -88,7 +92,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Baskets blanches classiques en cuir synthétique. Semelle confortable et design intemporel qui s'accorde avec tout.",
     price: 1950,
     old_price: 3000,
-    images: ["https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80"),
     category_id: "14",
     sizes: ["36", "37", "38", "39", "40", "41", "42"],
     sizes_label: "Taille",
@@ -106,7 +110,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Crop top tendance en coton doux. Coupe ajustée, idéal pour un look décontracté et stylé.",
     price: 650,
     old_price: 1200,
-    images: ["https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80"),
     category_id: "6",
     sizes: ["XS", "S", "M", "L"],
     sizes_label: "Taille",
@@ -124,7 +128,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Jupe plissée élégante mi-longue, taille élastique confortable. Tissu fluide et léger.",
     price: 1200,
     old_price: 1800,
-    images: ["https://images.unsplash.com/photo-1583496924844-3d1918a55c27?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1583496924844-3d1918a55c27?w=800&q=80"),
     category_id: "8",
     sizes: ["S", "M", "L", "XL"],
     sizes_label: "Taille",
@@ -142,7 +146,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Veste en jean oversize délavée. Look décontracté avec poches avant et boutons métalliques.",
     price: 2500,
     old_price: 4000,
-    images: ["https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&q=80"),
     category_id: "13",
     sizes: ["M", "L", "XL", "XXL"],
     sizes_label: "Taille",
@@ -160,7 +164,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Ensemble jogging confortable en coton mélangé. Sweat à capuche et pantalon assorti.",
     price: 2200,
     old_price: 3500,
-    images: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80"),
     category_id: "7",
     sizes: ["S", "M", "L", "XL"],
     sizes_label: "Taille",
@@ -178,7 +182,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "T-shirt en coton 100% avec impression graphique tendance. Coupe regular fit.",
     price: 500,
     old_price: 900,
-    images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"),
     category_id: "11",
     sizes: ["S", "M", "L", "XL", "XXL"],
     sizes_label: "Taille",
@@ -196,7 +200,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Escarpins à talons hauts (8cm) en similicuir nude. Bout pointu élégant, semelle intérieure rembourrée.",
     price: 1500,
     old_price: 2600,
-    images: ["https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80"),
     category_id: "15",
     sizes: ["36", "37", "38", "39", "40"],
     sizes_label: "Taille",
@@ -214,7 +218,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Bague ajustable en alliage doré avec papillon en cristal. Bijou délicat et féminin.",
     price: 250,
     old_price: 500,
-    images: ["https://images.unsplash.com/photo-1605100804763-247f67963c9e?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1605100804763-247f67963c9e?w=800&q=80"),
     category_id: "10",
     sizes: ["Unique"],
     sizes_label: "Taille",
@@ -232,7 +236,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description: "Pantalon cargo en toile robuste avec poches latérales. Coupe décontractée et confortable.",
     price: 1800,
     old_price: 2800,
-    images: ["https://images.unsplash.com/photo-1555689502-c4b22d76c56f?w=800&q=80"],
+    images: img("https://images.unsplash.com/photo-1555689502-c4b22d76c56f?w=800&q=80"),
     category_id: "12",
     sizes: ["M", "L", "XL", "XXL"],
     sizes_label: "Taille",
