@@ -3,6 +3,7 @@ import { formatPrice, getDiscountPercent } from "@/lib/data";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ProductDetailClient } from "./ProductDetailClient";
+import { MobileHeader } from "@/components/MobileHeader";
 
 // ISR: regenerate every hour
 export const revalidate = 3600;
@@ -93,6 +94,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <>
       <ProductJsonLd product={product} />
+      <MobileHeader />
       <ProductDetailClient product={product} relatedProducts={relatedProducts} />
     </>
   );

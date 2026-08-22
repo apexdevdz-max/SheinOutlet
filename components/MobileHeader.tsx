@@ -76,7 +76,7 @@ export function MobileHeader() {
       setSearchQuery("");
     }
   };
-  const isForceWhite = !!(activeCat || activeFilter) || pathname === "/promotions" || pathname === "/best-sellers" || pathname === "/flash-sales";
+  const isForceWhite = !!(activeCat || activeFilter) || pathname === "/promotions" || pathname === "/best-sellers" || pathname === "/flash-sales" || pathname.startsWith("/product/");
   const headerActive = scrolled || isForceWhite;
 
   const iconColor = headerActive ? "text-gray-700 hover:text-primary" : "text-white/90 hover:text-white";
