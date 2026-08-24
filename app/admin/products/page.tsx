@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAdminStore } from "@/lib/store/useAdminStore";
-import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvided, type DraggableStateSnapshot } from "@hello-pangea/dnd";
 import { ImageCropEditor } from "@/components/admin/ImageCropEditor";
 import type { Product, Category, CategoryAttributeTemplate, ProductAttribute, ProductAttributeValue, ProductImage } from "@/lib/types";
 import { normalizeAttributes, normalizeImages, isColorAttribute, extractPlainValues } from "@/lib/attributeUtils";
@@ -213,79 +213,85 @@ function MediaUploader({
         Photos & Vidéos du produit
       </label>
 
-      {/* Existing images preview with drag & drop */}
+      {/* Existing images preview with drag & drop reorder */}
       {images.length > 0 && (
         <DragDropContext onDragEnd={handleImageDragEnd}>
           <Droppable droppableId="product-images" direction="horizontal">
             {(provided) => (
               <div
-                className="flex flex-wrap gap-2 mb-3"
+                className="flex gap-2 mb-3 overflow-x-auto pb-2"
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
-                {images.map((imgObj, i) => (
-                  <Draggable key={`img-${i}-${imgObj.url}`} draggableId={`img-${i}-${imgObj.url}`} index={i}>
-                    {(dragProvided, snapshot) => (
-                      <div
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        {...dragProvided.dragHandleProps}
-                        className={`relative group rounded-lg overflow-hidden border bg-gray-50 cursor-grab active:cursor-grabbing transition-all ${
-                          snapshot.isDragging
-                            ? "ring-2 ring-pink-400 shadow-lg opacity-90 scale-105"
-                            : "border-gray-200 hover:border-pink-300"
-                        } ${i === 0 ? "ring-2 ring-pink-500" : ""}`}
-                        style={{ width: colorNames.length > 0 ? "5.5rem" : "5rem" }}
-                      >
-                        <div className="w-full aspect-[3/4] overflow-hidden">
-                          {imgObj.url.includes("/video/") ? (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                          ) : (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={imgObj.url} alt="" className="w-full h-full object-cover" />
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                          >
-                            x
-                          </button>
-                          <span className={`absolute bottom-0 left-0 right-0 text-white text-[8px] text-center py-0.5 transition-opacity ${
-                            i === 0 ? "bg-pink-500 opacity-100 font-bold" : "bg-black/50 opacity-0 group-hover:opacity-100"
-                          }`}>
-                            {i === 0 ? "Principale" : i + 1}
-                          </span>
-                        </div>
-                        {/* Color tag checkboxes */}
-                        {colorNames.length > 0 && !imgObj.url.includes("/video/") && (
-                          <div className="flex flex-wrap gap-0.5 px-1 py-1 bg-white border-t border-gray-100">
-                            {colorNames.map((color) => {
-                              const tagged = imgObj.colorTags.some(t => t.toLowerCase() === color.toLowerCase());
-                              return (
-                                <button
-                                  key={color}
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); toggleColorTag(i, color); }}
-                                  className={`text-[7px] leading-tight px-1 py-0.5 rounded border transition-all truncate max-w-full ${
-                                    tagged
-                                      ? "bg-pink-500 text-white border-pink-500 font-semibold"
-                                      : "bg-gray-50 text-gray-400 border-gray-200 hover:border-pink-300"
-                                  }`}
-                                  title={tagged ? `Retirer "${color}"` : `Taguer "${color}"`}
-                                >
-                                  {color}
-                                </button>
-                              );
-                            })}
+                {images.map((imgObj, i) => {
+                  const cardWidth = colorNames.length > 0 ? "5.5rem" : "5rem";
+                  return (
+                    <Draggable key={imgObj.url} draggableId={imgObj.url} index={i}>
+                      {(dragProvided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                        <div
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          {...dragProvided.dragHandleProps}
+                          className={`relative group rounded-lg overflow-hidden border bg-gray-50 cursor-grab active:cursor-grabbing flex-shrink-0 ${
+                            snapshot.isDragging
+                              ? "ring-2 ring-pink-400 shadow-lg z-50"
+                              : "border-gray-200 hover:border-pink-300"
+                          } ${i === 0 && !snapshot.isDragging ? "ring-2 ring-pink-500" : ""}`}
+                          style={{
+                            ...dragProvided.draggableProps.style,
+                            width: cardWidth,
+                          }}
+                        >
+                          <div className="w-full aspect-[3/4] overflow-hidden">
+                            {imgObj.url.includes("/video/") ? (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              </div>
+                            ) : (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={imgObj.url} alt="" className="w-full h-full object-cover" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                              className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                            >
+                              x
+                            </button>
+                            <span className={`absolute bottom-0 left-0 right-0 text-white text-[8px] text-center py-0.5 transition-opacity ${
+                              i === 0 ? "bg-pink-500 opacity-100 font-bold" : "bg-black/50 opacity-0 group-hover:opacity-100"
+                            }`}>
+                              {i === 0 ? "Principale" : i + 1}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                          {/* Color tag checkboxes */}
+                          {colorNames.length > 0 && !imgObj.url.includes("/video/") && (
+                            <div className="flex flex-wrap gap-0.5 px-1 py-1 bg-white border-t border-gray-100">
+                              {colorNames.map((color) => {
+                                const tagged = imgObj.colorTags.some(t => t.toLowerCase() === color.toLowerCase());
+                                return (
+                                  <button
+                                    key={color}
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); toggleColorTag(i, color); }}
+                                    className={`text-[7px] leading-tight px-1 py-0.5 rounded border transition-all truncate max-w-full ${
+                                      tagged
+                                        ? "bg-pink-500 text-white border-pink-500 font-semibold"
+                                        : "bg-gray-50 text-gray-400 border-gray-200 hover:border-pink-300"
+                                    }`}
+                                    title={tagged ? `Retirer "${color}"` : `Taguer "${color}"`}
+                                  >
+                                    {color}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Draggable>
+                  );
+                })}
                 {provided.placeholder}
               </div>
             )}
@@ -616,7 +622,7 @@ function ProductModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div

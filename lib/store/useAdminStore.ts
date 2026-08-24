@@ -106,7 +106,9 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       });
       if (!res.ok) throw new Error(await res.text());
       const product = await res.json();
-      set((s) => ({ products: [product, ...s.products] }));
+      // Normalize images from raw Supabase JSONB to ensure {url, colorTags} shape
+      const normalized = { ...product, images: normalizeImages(product.images as (string | ProductImage)[] | undefined) };
+      set((s) => ({ products: [normalized, ...s.products] }));
       toast.success("Produit ajouté", `"${product.name}" a été créé avec succès.`);
     } catch (err) {
       console.error("[AdminStore] addProduct error:", err);
@@ -123,6 +125,10 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
       });
       if (!res.ok) throw new Error(await res.text());
       const updated = await res.json();
+      // Normalize images from raw Supabase JSONB to ensure {url, colorTags} shape
+      if (updated.images) {
+        updated.images = normalizeImages(updated.images as (string | ProductImage)[] | undefined);
+      }
       set((s) => ({
         products: s.products.map((p) => (p.id === id ? { ...p, ...updated } : p)),
       }));
@@ -178,7 +184,9 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
         set((s) => ({
           products: s.products.map((p) => {
             const u = updated.find((up: any) => up.id === p.id);
-            return u ? { ...p, ...u } : p;
+            if (!u) return p;
+            if (u.images) u.images = normalizeImages(u.images as (string | ProductImage)[] | undefined);
+            return { ...p, ...u };
           }),
         }));
       }
@@ -201,7 +209,9 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
         set((s) => ({
           products: s.products.map((p) => {
             const u = updated.find((up: any) => up.id === p.id);
-            return u ? { ...p, ...u } : p;
+            if (!u) return p;
+            if (u.images) u.images = normalizeImages(u.images as (string | ProductImage)[] | undefined);
+            return { ...p, ...u };
           }),
         }));
       }
