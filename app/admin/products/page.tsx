@@ -242,7 +242,7 @@ function MediaUploader({
                             width: cardWidth,
                           }}
                         >
-                          <div className="w-full aspect-[3/4] overflow-hidden">
+                          <div className="relative w-full aspect-[3/4] overflow-hidden">
                             {imgObj.url.includes("/video/") ? (
                               <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -251,6 +251,13 @@ function MediaUploader({
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={imgObj.url} alt="" className="w-full h-full object-cover" />
                             )}
+                            {/* Order badge — top-left corner of the image */}
+                            <span className={`absolute top-0.5 left-0.5 text-white text-[7px] leading-none px-1 py-0.5 rounded ${
+                              i === 0 ? "bg-pink-500 font-bold" : "bg-black/60"
+                            }`}>
+                              {i === 0 ? "★ 1" : i + 1}
+                            </span>
+                            {/* Delete button — top-right corner */}
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); removeImage(i); }}
@@ -258,11 +265,6 @@ function MediaUploader({
                             >
                               x
                             </button>
-                            <span className={`absolute bottom-0 left-0 right-0 text-white text-[8px] text-center py-0.5 transition-opacity ${
-                              i === 0 ? "bg-pink-500 opacity-100 font-bold" : "bg-black/50 opacity-0 group-hover:opacity-100"
-                            }`}>
-                              {i === 0 ? "Principale" : i + 1}
-                            </span>
                           </div>
                           {/* Color tag checkboxes */}
                           {colorNames.length > 0 && !imgObj.url.includes("/video/") && (

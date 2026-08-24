@@ -5,12 +5,33 @@ import { usePathname } from "next/navigation";
 
 const PHONE_NUMBER = "213550000000"; // Replace with actual number
 const WHATSAPP_URL = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent("Bonjour ! Je suis intéressé(e) par vos produits sur SHEIN Outlet.")}`;
-const FACEBOOK_URL = "https://m.me/sheinoutletdz"; // Replace with actual Messenger link
-const INSTAGRAM_URL = "https://instagram.com/sheinoutletdz"; // Replace with actual Instagram
+const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61584421506634";
+const INSTAGRAM_URL = "https://www.instagram.com/shein_outlet31";
+
+const FAQ_ITEMS = [
+  {
+    q: "Quels sont les délais de livraison ?",
+    a: "Nous livrons rapidement dans les 69 wilayas. Le délai varie selon votre wilaya, généralement sous quelques jours ouvrés.",
+  },
+  {
+    q: "Livrez-vous dans toute l'Algérie ?",
+    a: "Oui, nous livrons dans les 69 wilayas d'Algérie.",
+  },
+  {
+    q: "Quels sont les moyens de paiement acceptés ?",
+    a: "Le paiement se fait à la livraison, en espèces, directement auprès du livreur.",
+  },
+  {
+    q: "Comment vous contacter en cas de problème ?",
+    a: "Vous pouvez nous joindre via WhatsApp, Facebook ou Instagram, directement depuis le panneau Contactez-nous.",
+  },
+];
 
 export function ContactDrawer() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(false);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   // Listen for custom event to open drawer from header / mobile menu
   useEffect(() => {
@@ -21,6 +42,19 @@ export function ContactDrawer() {
 
   // Hide on admin/login
   if (pathname.startsWith("/admin") || pathname.startsWith("/login")) return null;
+
+  function openFaq() {
+    setOpen(false);
+    // Small delay so contact panel starts closing before FAQ opens
+    setTimeout(() => {
+      setFaqOpen(true);
+      setExpandedFaq(null);
+    }, 150);
+  }
+
+  function toggleFaqItem(index: number) {
+    setExpandedFaq((prev) => (prev === index ? null : index));
+  }
 
   return (
     <>
@@ -37,7 +71,7 @@ export function ContactDrawer() {
         </svg>
       </button>
 
-      {/* ── Drawer overlay ── */}
+      {/* ── Contact Drawer overlay ── */}
       {open && (
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
@@ -107,7 +141,7 @@ export function ContactDrawer() {
                   <span className="text-sm font-medium text-gray-900">WhatsApp</span>
                 </a>
 
-                {/* Facebook Messenger */}
+                {/* Facebook */}
                 <a
                   href={FACEBOOK_URL}
                   target="_blank"
@@ -116,10 +150,10 @@ export function ContactDrawer() {
                 >
                   <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center flex-shrink-0 transition-colors">
                     <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.89 1.434 5.473 3.678 7.164V22l3.375-1.852A11.298 11.298 0 0012 20.486c5.523 0 10-4.145 10-9.243C22 6.145 17.523 2 12 2zm1.065 12.439l-2.545-2.714-4.97 2.714 5.467-5.804 2.609 2.714 4.906-2.714-5.467 5.804z" />
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">Facebook Messenger</span>
+                  <span className="text-sm font-medium text-gray-900">Facebook</span>
                 </a>
 
                 {/* Instagram */}
@@ -145,27 +179,104 @@ export function ContactDrawer() {
 
               {/* ── Secondary links ── */}
               <div className="space-y-1 pb-8">
-                <a
-                  href="/faq"
-                  onClick={() => setOpen(false)}
-                  className="block py-3 text-xs font-semibold tracking-[0.15em] text-gray-500 hover:text-gray-900 uppercase transition-colors"
+                <button
+                  type="button"
+                  onClick={openFaq}
+                  className="block py-3 text-xs font-semibold tracking-[0.15em] text-gray-500 hover:text-gray-900 uppercase transition-colors cursor-pointer"
                 >
                   FAQ
-                </a>
-                <a
-                  href="/account"
-                  onClick={() => setOpen(false)}
-                  className="block py-3 text-xs font-semibold tracking-[0.15em] text-gray-500 hover:text-gray-900 uppercase transition-colors"
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── FAQ Drawer overlay ── */}
+      {faqOpen && (
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setFaqOpen(false)}
+          />
+
+          {/* ── Side panel (from right) — identical to contact panel ── */}
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl animate-slide-in-right flex flex-col">
+
+            {/* ── Header ── */}
+            <div className="px-8 pt-8 pb-6 flex-shrink-0">
+              <div className="flex items-start justify-between mb-3">
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                  FAQ
+                </h2>
+                <button
+                  onClick={() => setFaqOpen(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors -mt-1 -mr-2"
+                  aria-label="Fermer"
                 >
-                  Mon compte
-                </a>
-                <a
-                  href="/cart"
-                  onClick={() => setOpen(false)}
-                  className="block py-3 text-xs font-semibold tracking-[0.15em] text-gray-500 hover:text-gray-900 uppercase transition-colors"
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Questions fréquemment posées
+              </p>
+            </div>
+
+            {/* ── Accordion ── */}
+            <div className="flex-1 overflow-y-auto px-8 pb-8">
+              <div className="divide-y divide-gray-100">
+                {FAQ_ITEMS.map((item, index) => {
+                  const isOpen = expandedFaq === index;
+                  return (
+                    <div key={index}>
+                      <button
+                        type="button"
+                        onClick={() => toggleFaqItem(index)}
+                        className="w-full flex items-start justify-between gap-3 py-5 text-left group cursor-pointer"
+                      >
+                        <span className={`text-sm font-medium transition-colors ${isOpen ? "text-gray-900" : "text-gray-700 group-hover:text-gray-900"}`}>
+                          {item.q}
+                        </span>
+                        <svg
+                          className={`w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <div
+                        className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                          isOpen ? "max-h-40 opacity-100 pb-5" : "max-h-0 opacity-0"
+                        }`}
+                      >
+                        <p className="text-sm text-gray-500 leading-relaxed">
+                          {item.a}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ── Back to contact ── */}
+              <div className="border-t border-gray-100 mt-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => { setFaqOpen(false); setTimeout(() => setOpen(true), 150); }}
+                  className="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] text-gray-500 hover:text-gray-900 uppercase transition-colors cursor-pointer"
                 >
-                  Suivi de commande
-                </a>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Retour — Contactez-nous
+                </button>
               </div>
             </div>
 
