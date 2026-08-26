@@ -84,7 +84,35 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
 
   // Get the selected color name (if any color attribute exists)
   const colorAttr = displayAttrs.find(a => isColorAttribute(a.label));
+  const sizeAttr = displayAttrs.find(a => {
+    const l = a.label.toLowerCase();
+    return (l.includes("taille") || l.includes("size") || l.includes("pointure") || l.includes("stockage") || l.includes("capacit")) && !isColorAttribute(a.label);
+  }) || displayAttrs.find(a => !isColorAttribute(a.label) && a !== colorAttr);
   const selectedColor = colorAttr ? selections[colorAttr.label] || "" : "";
+  const selectedSize = sizeAttr ? selections[sizeAttr.label] || "" : "";
+
+  // ── Combination availability (blacklist) ──
+  const unavailableCombos = new Set(product.unavailable_combos || []);
+
+  function isComboBlocked(color: string, size: string): boolean {
+    if (!color || !size) return false; // Can't check without both values
+    return unavailableCombos.has(`${color}:${size}`);
+  }
+
+  // Check if a specific color has ANY valid size combo
+  function colorHasAnySizeCombo(color: string): boolean {
+    if (!sizeAttr) return true;
+    return sizeAttr.values.some(s => s.available && !unavailableCombos.has(`${color}:${s.value}`));
+  }
+
+  // Check if a specific size has ANY valid color combo
+  function sizeHasAnyColorCombo(size: string): boolean {
+    if (!colorAttr) return true;
+    return colorAttr.values.some(c => c.available && !unavailableCombos.has(`${c.value}:${size}`));
+  }
+
+  // Is the current full selection a valid combo?
+  const currentComboValid = !isComboBlocked(selectedColor, selectedSize);
 
   // Filter gallery images by selected color
   const galleryImages = selectedColor
@@ -368,17 +396,27 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
                 <div className="flex gap-2 flex-wrap">
                   {attr.values.map((attrVal) => {
                     const isSelected = selections[attr.label] === attrVal.value;
-                    const isAvailable = attrVal.available;
+                    const isGloballyDisabled = !attrVal.available;
+                    // Grey out if selected size makes this color combo unavailable
+                    const isComboDisabled = !isGloballyDisabled && selectedSize && isComboBlocked(attrVal.value, selectedSize);
+                    const isAvailable = !isGloballyDisabled && !isComboDisabled;
                     const thumb = getColorThumbnail(productImages, attrVal.value);
 
                     return (
                       <button
                         key={attrVal.value}
                         disabled={!isAvailable}
-                        title={!isAvailable ? `${attrVal.value} — Indisponible` : attrVal.value}
+                        title={isGloballyDisabled ? `${attrVal.value} — Indisponible` : isComboDisabled ? `${attrVal.value} — Pas disponible en ${selectedSize}` : attrVal.value}
                         onClick={() => {
                           if (!isAvailable) return;
-                          setSelections({ ...selections, [attr.label]: attrVal.value });
+                          const newSelections = { ...selections, [attr.label]: attrVal.value };
+                          // Auto-deselect size if it becomes invalid with this color
+                          if (sizeAttr && newSelections[sizeAttr.label] && isComboBlocked(attrVal.value, newSelections[sizeAttr.label])) {
+                            const validSize = sizeAttr.values.find(s => s.available && !unavailableCombos.has(`${attrVal.value}:${s.value}`));
+                            if (validSize) newSelections[sizeAttr.label] = validSize.value;
+                            else delete newSelections[sizeAttr.label];
+                          }
+                          setSelections(newSelections);
                           setSelectedImage(0);
                         }}
                         className={`relative w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 transition-all ${
@@ -417,16 +455,27 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
                 <div className="flex gap-2 flex-wrap">
                   {attr.values.map((attrVal) => {
                     const isSelected = selections[attr.label] === attrVal.value;
-                    const isAvailable = attrVal.available;
+                    const isGloballyDisabled = !attrVal.available;
+                    // For size-like attrs: grey out if selected color makes this size combo unavailable
+                    const isSizeType = attr === sizeAttr;
+                    const isComboDisabled = !isGloballyDisabled && isSizeType && selectedColor && isComboBlocked(selectedColor, attrVal.value);
+                    const isAvailable = !isGloballyDisabled && !isComboDisabled;
 
                     return (
                       <button
                         key={attrVal.value}
                         disabled={!isAvailable}
-                        title={!isAvailable ? "Indisponible" : undefined}
+                        title={isGloballyDisabled ? "Indisponible" : isComboDisabled ? `Pas disponible en ${selectedColor}` : undefined}
                         onClick={() => {
                           if (!isAvailable) return;
-                          setSelections({ ...selections, [attr.label]: attrVal.value });
+                          const newSelections = { ...selections, [attr.label]: attrVal.value };
+                          // Auto-deselect color if it becomes invalid with this size
+                          if (isSizeType && colorAttr && newSelections[colorAttr.label] && isComboBlocked(newSelections[colorAttr.label], attrVal.value)) {
+                            const validColor = colorAttr.values.find(c => c.available && !unavailableCombos.has(`${c.value}:${attrVal.value}`));
+                            if (validColor) newSelections[colorAttr.label] = validColor.value;
+                            else delete newSelections[colorAttr.label];
+                          }
+                          setSelections(newSelections);
                         }}
                         className={`px-4 py-2 rounded-full text-sm border transition-all ${
                           !isAvailable
@@ -484,9 +533,9 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
                 if (product.stock <= 0) return;
                 handleAddToCart();
               }}
-              disabled={product.stock <= 0}
+              disabled={product.stock <= 0 || !currentComboValid}
               className={`flex-1 py-4 font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-                product.stock <= 0
+                product.stock <= 0 || !currentComboValid
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-black text-white hover:bg-gray-800"
               }`}
@@ -505,9 +554,9 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
                 addToCart(product, selectedSize, selectedColor);
                 router.push("/cart");
               }}
-              disabled={product.stock <= 0}
+              disabled={product.stock <= 0 || !currentComboValid}
               className={`flex-1 py-4 font-bold text-sm flex items-center justify-center gap-2 border-2 transition-all ${
-                product.stock <= 0
+                product.stock <= 0 || !currentComboValid
                   ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                   : "bg-white text-black border-black hover:bg-gray-50"
               }`}

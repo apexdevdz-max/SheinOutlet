@@ -31,9 +31,9 @@ async function getMockFallback() {
 
 // ── Column selections (never select *) ──
 const PRODUCT_LIST_COLUMNS =
-  "id, name, slug, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at";
+  "id, name, slug, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at, unavailable_combos";
 const PRODUCT_DETAIL_COLUMNS =
-  "id, name, slug, description, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at";
+  "id, name, slug, description, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at, unavailable_combos";
 const CATEGORY_COLUMNS =
   "id, name, slug, image_url, parent_id, show_in_header, display_order";
 

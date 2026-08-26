@@ -23,6 +23,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // ── Server-side: validate combination availability ──
+    if (items && items.length > 0) {
+      // Collect unique product IDs to fetch
+      const productIds = [...new Set(items.map((item: { product_id: string }) => item.product_id))];
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, unavailable_combos")
+        .in("id", productIds);
+
+      const productMap = new Map(
+        (products || []).map((p: { id: string; unavailable_combos?: string[] }) => [p.id, p])
+      );
+
+      for (const item of items as { product_id: string; color: string; size: string }[]) {
+        if (item.color && item.size) {
+          const prod = productMap.get(item.product_id);
+          const combos = (prod as { unavailable_combos?: string[] })?.unavailable_combos || [];
+          if (combos.includes(`${item.color}:${item.size}`)) {
+            return NextResponse.json(
+              { error: `La combinaison ${item.color} + ${item.size} n'est pas disponible.` },
+              { status: 400 }
+            );
+          }
+        }
+      }
+    }
+
     // 1. Insert the order
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -77,3 +104,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }
 }
+

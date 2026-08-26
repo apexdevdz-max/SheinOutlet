@@ -41,6 +41,9 @@ export interface Product {
   is_best_seller: boolean;
   stock: number;
   created_at: string;
+  // Combination availability: list of unavailable "COLOR:SIZE" combos (blacklist approach)
+  // Empty or absent = all combos available (backward compatible)
+  unavailable_combos?: string[];
 }
 
 export interface CartItem {

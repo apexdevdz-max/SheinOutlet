@@ -454,6 +454,21 @@ function ProductModal({
   // New value input per attribute (for adding new values via Enter key)
   const [newValueInputs, setNewValueInputs] = useState<Record<number, string>>({});
 
+  // ── Combination availability (blacklist of unavailable combos) ──
+  const [unavailableCombos, setUnavailableCombos] = useState<Set<string>>(
+    () => new Set(product?.unavailable_combos || [])
+  );
+
+  function toggleCombo(color: string, size: string) {
+    const key = `${color}:${size}`;
+    setUnavailableCombos(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
   // Category data
   const parentCategories = categories.filter((c) => !c.parent_id);
   const subCategories = categories.filter((c) => c.parent_id === form.parentCategoryId);
@@ -619,6 +634,15 @@ function ProductModal({
       stock: Number(form.stock),
       is_flash_sale: form.is_flash_sale,
       is_best_seller: form.is_best_seller,
+      // Only keep combos that reference currently active colors+sizes
+      unavailable_combos: (() => {
+        const activeColors = (colorsAttr ? extractPlainValues(colorsAttr.values.filter(v => v.available)) : []);
+        const activeSizes = (sizesAttr ? extractPlainValues(sizesAttr.values.filter(v => v.available)) : []);
+        return Array.from(unavailableCombos).filter(combo => {
+          const [c, s] = combo.split(":");
+          return activeColors.includes(c) && activeSizes.includes(s);
+        });
+      })(),
     });
   }
 
@@ -917,6 +941,70 @@ function ProductModal({
               })}
             </div>
           )}
+
+          {/* ══════ COMBINATION AVAILABILITY GRID ══════ */}
+          {(() => {
+            const colorsAttrGrid = attributes.find(a => isColorAttribute(a.label));
+            const sizesAttrGrid = attributes.find(a => {
+              const l = a.label.toLowerCase();
+              return (l.includes("taille") || l.includes("size") || l.includes("pointure") || l.includes("stockage") || l.includes("capacit")) && !isColorAttribute(a.label);
+            }) || attributes.find(a => !isColorAttribute(a.label) && a !== colorsAttrGrid);
+            const activeColors = colorsAttrGrid?.values.filter(v => v.available) || [];
+            const activeSizes = sizesAttrGrid?.values.filter(v => v.available) || [];
+            if (activeColors.length === 0 || activeSizes.length === 0) return null;
+            return (
+              <div className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  Disponibilité par combinaison
+                </p>
+                <p className="text-[11px] text-gray-400">Décochez les combinaisons couleur × taille qui n&apos;existent pas.</p>
+                <div className="overflow-x-auto">
+                  <table className="text-xs w-full">
+                    <thead>
+                      <tr>
+                        <th className="text-left py-1.5 pr-3 text-gray-400 font-medium">{sizesAttrGrid?.label || "Taille"} \ {colorsAttrGrid?.label || "Couleur"}</th>
+                        {activeColors.map(c => (
+                          <th key={c.value} className="text-center py-1.5 px-2 text-gray-600 font-semibold">{c.value}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeSizes.map(s => (
+                        <tr key={s.value} className="border-t border-gray-100">
+                          <td className="py-1.5 pr-3 text-gray-600 font-medium">{s.value}</td>
+                          {activeColors.map(c => {
+                            const comboKey = `${c.value}:${s.value}`;
+                            const isAvailable = !unavailableCombos.has(comboKey);
+                            return (
+                              <td key={comboKey} className="text-center py-1.5 px-2">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleCombo(c.value, s.value)}
+                                  className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                                    isAvailable
+                                      ? "border-green-400 bg-green-50 text-green-500 hover:bg-green-100"
+                                      : "border-gray-200 bg-gray-50 text-transparent hover:border-red-300 hover:bg-red-50"
+                                  }`}
+                                  title={isAvailable ? `${c.value} + ${s.value} : disponible` : `${c.value} + ${s.value} : indisponible`}
+                                >
+                                  {isAvailable && (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </button>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Toggles */}
           <div className="flex items-center gap-6 pt-2">

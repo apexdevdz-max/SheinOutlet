@@ -74,6 +74,7 @@ export async function POST(req: Request) {
       is_flash_sale: body.is_flash_sale || false,
       is_best_seller: body.is_best_seller || false,
       stock: body.stock || 0,
+      unavailable_combos: body.unavailable_combos || [],
     })
     .select()
     .single();
