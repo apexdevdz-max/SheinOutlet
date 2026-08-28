@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "@/lib/i18n/context";
 
 const PHONE_NUMBER = "213550000000"; // Replace with actual number
 const WHATSAPP_URL = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent("Bonjour ! Je suis intéressé(e) par vos produits sur SHEIN Outlet.")}`;
@@ -28,6 +29,7 @@ const FAQ_ITEMS = [
 ];
 
 export function ContactDrawer() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
@@ -87,7 +89,7 @@ export function ContactDrawer() {
             <div className="px-8 pt-8 pb-6 flex-shrink-0">
               <div className="flex items-start justify-between mb-5">
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-                  Contactez-nous
+                  {t("contact.title")}
                 </h2>
                 <button
                   onClick={() => setOpen(false)}
@@ -100,7 +102,7 @@ export function ContactDrawer() {
                 </button>
               </div>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Où que vous soyez, nos conseillers seront ravis de vous assister.
+                {t("contact.subtitle")}
               </p>
             </div>
 
@@ -122,7 +124,7 @@ export function ContactDrawer() {
                     <span className="text-sm font-medium text-gray-900 block">
                       +213 550 000 000
                     </span>
-                    <span className="text-xs text-gray-400">Appel direct</span>
+                    <span className="text-xs text-gray-400">{t("contact.phoneDesc")}</span>
                   </div>
                 </a>
 
@@ -209,7 +211,7 @@ export function ContactDrawer() {
             <div className="px-8 pt-8 pb-6 flex-shrink-0">
               <div className="flex items-start justify-between mb-3">
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-                  FAQ
+                  {t("faq.title")}
                 </h2>
                 <button
                   onClick={() => setFaqOpen(false)}
@@ -222,14 +224,14 @@ export function ContactDrawer() {
                 </button>
               </div>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Questions fréquemment posées
+                {t("contact.faqDesc")}
               </p>
             </div>
 
             {/* ── Accordion ── */}
             <div className="flex-1 overflow-y-auto px-8 pb-8">
               <div className="divide-y divide-gray-100">
-                {FAQ_ITEMS.map((item, index) => {
+                {[{q: t("faq.q1"), a: t("faq.a1")}, {q: t("faq.q2"), a: t("faq.a2")}, {q: t("faq.q3"), a: t("faq.a3")}, {q: t("faq.q4"), a: t("faq.a4")}].map((item, index) => {
                   const isOpen = expandedFaq === index;
                   return (
                     <div key={index}>
@@ -275,7 +277,7 @@ export function ContactDrawer() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  Retour — Contactez-nous
+                  {t("contact.back")}
                 </button>
               </div>
             </div>

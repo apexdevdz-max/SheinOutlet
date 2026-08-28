@@ -10,6 +10,7 @@ import { formatPrice, getDiscountPercent } from "@/lib/data";
 import type { Product, ProductAttributeValue, ProductImage } from "@/lib/types";
 import { normalizeAttributes, normalizeImages, isColorAttribute, getImagesForColor, getColorThumbnail } from "@/lib/attributeUtils";
 import { ProductCard } from "@/components/ProductCard";
+import { useTranslation } from "@/lib/i18n/context";
 
 /* ── Related Products Carousel ── */
 function RelatedProducts({ products }: { products: Product[] }) {
@@ -60,6 +61,7 @@ function RelatedProducts({ products }: { products: Product[] }) {
 export function ProductDetailClient({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
   const { addToCart, toggleFavorite, isFavorite } = useStore();
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Normalize images to ProductImage[] format
   const productImages: ProductImage[] = normalizeImages(product.images as unknown as (string | ProductImage)[]);
@@ -379,7 +381,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
-              <span className="text-red-600 font-bold text-sm">RUPTURE DE STOCK</span>
+              <span className="text-red-600 font-bold text-sm">{t("product.stockOut")}</span>
             </div>
           )}
 
@@ -497,7 +499,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
 
           {/* Quantity + Stock indicator — inline */}
           <div className="mb-6 flex items-center gap-4">
-            <h3 className="text-sm font-bold text-text">Quantité</h3>
+            <h3 className="text-sm font-bold text-text">{t("product.quantity")}</h3>
             <div className={`flex items-center gap-0 border border-border rounded-lg overflow-hidden ${product.stock <= 0 ? "opacity-40 pointer-events-none" : ""}`}>
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -520,7 +522,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
             {product.stock > 0 && (
               <span className="text-xs text-green-600 font-medium flex items-center gap-1">
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                En stock
+                {t("product.inStock")}
               </span>
             )}
           </div>
@@ -542,7 +544,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               id="add-to-cart-btn"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
-              {product.stock <= 0 ? "INDISPONIBLE" : "AJOUTER AU PANIER"}
+              {product.stock <= 0 ? t("product.unavailable") : t("product.addToCart")}
             </button>
 
             {/* ACHETER MAINTENANT = secondary (outline), second */}
@@ -563,7 +565,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               id="order-now-btn"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
-              ACHETER MAINTENANT
+              {t("product.buyNow")}
             </button>
           </div>
 
@@ -571,17 +573,17 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
           <div className="grid grid-cols-4 gap-2 py-5 border-t border-b border-border mb-6">
             <div className="text-center">
               <svg className="w-6 h-6 mx-auto text-gray-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-              <p className="text-[10px] text-text-muted font-medium leading-tight">Livraison rapide</p>
+              <p className="text-[10px] text-text-muted font-medium leading-tight">{t("product.fastDelivery")}</p>
               <p className="text-[9px] text-gray-400">2-4 jours ouvrés</p>
             </div>
             <div className="text-center">
               <svg className="w-6 h-6 mx-auto text-gray-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" /></svg>
-              <p className="text-[10px] text-text-muted font-medium leading-tight">Paiement à la livraison</p>
+              <p className="text-[10px] text-text-muted font-medium leading-tight">{t("product.codPayment")}</p>
               <p className="text-[9px] text-gray-400">Payez à la réception</p>
             </div>
             <div className="text-center">
               <svg className="w-6 h-6 mx-auto text-gray-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
-              <p className="text-[10px] text-text-muted font-medium leading-tight">Retour facile</p>
+              <p className="text-[10px] text-text-muted font-medium leading-tight">{t("product.returnPolicy")}</p>
               <p className="text-[9px] text-gray-400">Sous 7 jours</p>
             </div>
             <div className="text-center">
@@ -599,7 +601,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               className="w-full flex items-center justify-between py-4 px-1 border-b border-border text-left group cursor-pointer"
               id="open-description-btn"
             >
-              <span className="text-sm font-semibold text-text uppercase tracking-wide">Description</span>
+              <span className="text-sm font-semibold text-text uppercase tracking-wide">{t("product.description")}</span>
               <svg className="w-4 h-4 text-gray-400 group-hover:text-text transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -611,7 +613,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               className="w-full flex items-center justify-between py-4 px-1 border-b border-border text-left group cursor-pointer"
               id="share-btn"
             >
-              <span className="text-sm font-semibold text-text uppercase tracking-wide">Partager</span>
+              <span className="text-sm font-semibold text-text uppercase tracking-wide">{t("product.share")}</span>
               <svg className="w-4 h-4 text-gray-400 group-hover:text-text transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
               </svg>

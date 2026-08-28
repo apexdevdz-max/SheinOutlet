@@ -104,25 +104,36 @@ function CarouselRow({ row }: { row: CategoryRow }) {
 }
 
 /* ══════════════════════════════════════════════ */
-export function CategoryCarousels() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+interface CategoryCarouselsProps {
+  products?: Product[];
+  categories?: Category[];
+}
+
+export function CategoryCarousels({ products: propProducts, categories: propCategories }: CategoryCarouselsProps) {
+  // Use props if available (SSR), otherwise fetch client-side (backward compat)
+  const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
+  const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(!propProducts);
 
   useEffect(() => {
+    // Skip fetch if data was passed as props
+    if (propProducts && propCategories) return;
     Promise.all([
       fetch("/api/products?limit=200").then((r) => r.json()),
       fetch("/api/categories").then((r) => r.json()),
     ])
       .then(([products, cats]) => {
-        setAllProducts(Array.isArray(products) ? products : []);
-        setCategories(Array.isArray(cats) ? cats : []);
+        setFetchedProducts(Array.isArray(products) ? products : []);
+        setFetchedCategories(Array.isArray(cats) ? cats : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [propProducts, propCategories]);
 
-  if (loading) {
+  const allProducts = propProducts || fetchedProducts;
+  const categories = propCategories || fetchedCategories;
+
+  if (loading && allProducts.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex gap-[2px] overflow-hidden">

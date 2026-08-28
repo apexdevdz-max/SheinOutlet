@@ -4,12 +4,19 @@ import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link";
+import Image from "next/image";
+import cloudinaryLoader from "@/lib/cloudinary";
 import type { Banner } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function HeroCarousel() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 4000, stopOnInteraction: false }),
-  ]);
+  const { dir } = useTranslation();
+
+  // Embla needs `direction` to handle RTL slide positioning correctly
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, direction: dir === "rtl" ? "rtl" : "ltr" },
+    [Autoplay({ delay: 4000, stopOnInteraction: false })]
+  );
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [banners, setBanners] = useState<Banner[]>([]);
 
@@ -22,6 +29,13 @@ export function HeroCarousel() {
       })
       .catch(() => {});
   }, []);
+
+  // Re-initialize Embla when direction changes (language switch without reload)
+  useEffect(() => {
+    if (emblaApi) {
+      emblaApi.reInit({ loop: true, direction: dir === "rtl" ? "rtl" : "ltr" });
+    }
+  }, [dir, emblaApi]);
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
@@ -41,7 +55,7 @@ export function HeroCarousel() {
   return (
     <section className="relative w-full" id="hero-carousel">
       <div>
-        <div ref={emblaRef} className="overflow-hidden">
+        <div ref={emblaRef} className="overflow-hidden" dir={dir}>
           <div className="flex">
             {banners.map((b, i) => (
               <Link
@@ -49,12 +63,14 @@ export function HeroCarousel() {
                 href={b.href || "/"}
                 className="flex-[0_0_100%] min-w-0 relative aspect-[1.8/1] md:aspect-[2.8/1] block"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={b.image_url}
                   alt={b.title}
-                  className="w-full h-full object-cover"
-                  loading={i === 0 ? "eager" : "lazy"}
+                  fill
+                  loader={cloudinaryLoader}
+                  className="object-cover"
+                  sizes="100vw"
+                  priority={i === 0}
                 />
                 {/* Text overlay */}
                 {b.show_text && (b.title || b.subtitle) && (

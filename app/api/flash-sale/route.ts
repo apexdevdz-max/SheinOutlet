@@ -6,30 +6,38 @@ export async function GET() {
   // Get the active campaign
   const { data: campaign } = await supabaseAdmin
     .from("flash_sales")
-    .select("*")
+    .select("id, title, subtitle, end_date, is_active")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
   if (!campaign) {
-    return NextResponse.json({ campaign: null, products: [] });
+    return NextResponse.json({ campaign: null, products: [] }, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    });
   }
 
   // Check if campaign has expired
   if (new Date(campaign.end_date) <= new Date()) {
-    return NextResponse.json({ campaign: null, products: [] });
+    return NextResponse.json({ campaign: null, products: [] }, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    });
   }
 
   // Get flash sale products
   const { data: products } = await supabaseAdmin
     .from("products")
-    .select("*")
+    .select("id, name, slug, price, old_price, images, category_id, attributes, sizes, sizes_label, colors, is_flash_sale, is_best_seller, stock, created_at, unavailable_combos")
     .eq("is_flash_sale", true)
     .order("created_at", { ascending: false });
 
   return NextResponse.json({
     campaign,
     products: products || [],
+  }, {
+    headers: {
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+    },
   });
 }

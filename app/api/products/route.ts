@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getProducts } from "@/lib/supabase-data";
 
 // GET /api/products — Public read-only product listing
-// Query params: ?flash_sale=true, ?best_seller=true, ?category=slug, ?limit=30
+// Query params: ?flash_sale=true, ?best_seller=true, ?category=slug, ?limit=30, ?search=term
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -20,6 +20,14 @@ export async function GET(req: Request) {
   const limit = searchParams.get("limit");
   if (limit) opts.limit = parseInt(limit, 10);
 
+  const search = searchParams.get("search");
+  if (search) opts.search = search;
+
   const data = await getProducts(opts);
-  return NextResponse.json(data);
+
+  return NextResponse.json(data, {
+    headers: {
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+    },
+  });
 }

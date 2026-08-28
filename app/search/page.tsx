@@ -7,8 +7,10 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
 import type { Product } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 function SearchContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -40,18 +42,18 @@ function SearchContent() {
           {query ? (
             <>
               <h1 className="text-lg md:text-xl font-black text-text">
-                Resultats pour &ldquo;{query}&rdquo;
+                {t("search.results", { query })}
               </h1>
               <p className="text-xs text-text-muted mt-0.5">
-                {searchResults.length} produit{searchResults.length !== 1 ? "s" : ""} trouv&eacute;{searchResults.length !== 1 ? "s" : ""}
+                {t("filter.results", { count: String(searchResults.length) })}
               </p>
             </>
           ) : (
-            <h1 className="text-lg md:text-xl font-black text-text">Tous les produits</h1>
+            <h1 className="text-lg md:text-xl font-black text-text">{t("home.allProducts")}</h1>
           )}
         </div>
         <Link href="/" className="text-xs text-primary hover:underline hidden md:block">
-          &larr; Accueil
+          &larr; {t("nav.home")}
         </Link>
       </div>
 
@@ -75,7 +77,7 @@ function SearchContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   </div>
-                  <p className="text-sm text-text-light">Aucun produit ne correspond aux filtres.</p>
+                  <p className="text-sm text-text-light">{t("filter.noProducts")}</p>
                 </div>
               )}
             </>
@@ -88,9 +90,9 @@ function SearchContent() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <p className="text-sm text-text-light mb-1">Aucun produit trouv&eacute; pour &ldquo;{query}&rdquo;.</p>
+          <p className="text-sm text-text-light mb-1">{t("search.noResults", { query })}</p>
           <Link href="/" className="text-xs text-primary font-medium hover:underline">
-            &larr; Retour &agrave; l&apos;accueil
+            &larr; {t("order.backHome")}
           </Link>
         </div>
       )}

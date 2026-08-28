@@ -6,8 +6,10 @@ import { useStore } from "@/lib/store/useStore";
 import { formatPrice, PHONE_REGEX, getShippingCost } from "@/lib/data";
 import { WILAYAS } from "@/lib/data";
 import type { OrderFormData, Order, CartItem } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 function CartCountdown() {
+  const { t } = useTranslation();
   const [time, setTime] = useState({ minutes: 14, seconds: 59 });
   const [mounted, setMounted] = useState(false);
 
@@ -29,7 +31,7 @@ function CartCountdown() {
     <div className="bg-primary-light border border-primary/20 rounded-xl p-3 mb-4 flex items-center gap-2">
       <span className="text-lg"></span>
       <p className="text-xs text-text">
-        Votre Panier est valide pendant :{" "}
+        {t("cart.validFor")}{" "}
         <span className="font-bold text-primary">
           {String(time.minutes).padStart(2, "0")}:{String(time.seconds).padStart(2, "0")}
         </span>
@@ -39,6 +41,7 @@ function CartCountdown() {
 }
 
 export default function CartPage() {
+  const { t } = useTranslation();
   const { cart, updateQuantity, removeFromCart, clearCart, getCartTotal, getCartCount } = useStore();
   const [showCheckout, setShowCheckout] = useState(false);
   const [formData, setFormData] = useState<OrderFormData>({
@@ -64,13 +67,13 @@ export default function CartPage() {
 
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof OrderFormData, string>> = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "Prénom requis";
-    if (!formData.lastName.trim()) newErrors.lastName = "Nom requis";
-    if (!formData.phone.trim()) newErrors.phone = "Téléphone requis";
-    else if (!PHONE_REGEX.test(formData.phone)) newErrors.phone = "Format invalide (05/06/07 + 8 chiffres)";
-    if (!formData.wilaya) newErrors.wilaya = "Wilaya requise";
-    if (!formData.commune.trim()) newErrors.commune = "Commune requise";
-    if (!formData.address.trim()) newErrors.address = "Adresse requise";
+    if (!formData.firstName.trim()) newErrors.firstName = t("checkout.requiredFirstName");
+    if (!formData.lastName.trim()) newErrors.lastName = t("checkout.requiredLastName");
+    if (!formData.phone.trim()) newErrors.phone = t("checkout.requiredPhone");
+    else if (!PHONE_REGEX.test(formData.phone)) newErrors.phone = t("checkout.invalidPhone");
+    if (!formData.wilaya) newErrors.wilaya = t("checkout.requiredWilaya");
+    if (!formData.commune.trim()) newErrors.commune = t("checkout.requiredCommune");
+    if (!formData.address.trim()) newErrors.address = t("checkout.requiredAddress");
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -159,9 +162,9 @@ export default function CartPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-black text-text mb-2">Commande Confirmée !</h1>
-          <p className="text-text-light text-sm">Merci pour votre commande. Vous serez contacté(e) par téléphone pour confirmer la livraison.</p>
-          <p className="text-xs text-text-muted mt-1">Paiement à la livraison (COD)</p>
+          <h1 className="text-2xl font-black text-text mb-2">{t("order.success")}</h1>
+          <p className="text-text-light text-sm">{t("order.thankYou")}</p>
+          <p className="text-xs text-text-muted mt-1">{t("footer.codPayment")}</p>
         </div>
 
         {/* Order Recap Card */}
@@ -170,7 +173,7 @@ export default function CartPage() {
           <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Référence</p>
+                <p className="text-xs text-gray-500">{t("order.number")}</p>
                 <p className="text-sm font-bold text-gray-900">
                   #{orderData?.id ? orderData.id.slice(0, 8).toUpperCase() : "---"}
                 </p>
@@ -188,7 +191,7 @@ export default function CartPage() {
 
           {/* Items */}
           <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Articles</h3>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t("order.summary")}</h3>
             <div className="space-y-3">
               {orderItems.map((item, i) => (
                 <div key={i} className="flex items-start justify-between gap-3">
@@ -214,7 +217,7 @@ export default function CartPage() {
 
           {/* Delivery Info */}
           <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Livraison</h3>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t("cart.shipping")}</h3>
             <div className="space-y-1 text-sm text-gray-700">
               <p className="font-medium">{formData.firstName} {formData.lastName}</p>
               <p>{formData.phone}</p>
@@ -227,11 +230,11 @@ export default function CartPage() {
           <div className="px-5 py-4">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
-                <span>Sous-total</span>
+                <span>{t("cart.subtotal")}</span>
                 <span>{formatPrice(itemsTotal)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Livraison</span>
+                <span>{t("cart.shipping")}</span>
                 <span>{formatPrice(orderShipping)}</span>
               </div>
               <div className="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-100">
@@ -244,7 +247,7 @@ export default function CartPage() {
 
         <div className="text-center">
           <Link href="/" className="inline-block bg-black text-white font-bold px-8 py-3 rounded-full hover:bg-gray-800 transition-colors">
-            CONTINUER MES ACHATS
+            {t("cart.continueShopping").toUpperCase()}
           </Link>
         </div>
       </div>
@@ -260,12 +263,12 @@ export default function CartPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-lg font-bold text-text">MON PANIER</h1>
-        <span className="text-sm text-text-muted ml-auto">{count} items</span>
+        <h1 className="text-lg font-bold text-text">{t("cart.title").toUpperCase()}</h1>
+        <span className="text-sm text-text-muted ml-auto">{t("cart.items", { count: String(count) })}</span>
       </div>
 
-      <h1 className="hidden md:block text-3xl font-black text-text mb-2">Mon Panier</h1>
-      <p className="hidden md:block text-text-muted mb-6">Total ({count} article{count > 1 ? "s" : ""}) : {formatPrice(total)}</p>
+      <h1 className="hidden md:block text-3xl font-black text-text mb-2">{t("cart.title")}</h1>
+      <p className="hidden md:block text-text-muted mb-6">{t("cart.total")} ({t("cart.items", { count: String(count) })}) : {formatPrice(total)}</p>
 
       {cart.length === 0 && !orderSuccess ? (
         <div className="text-center py-20">
@@ -274,10 +277,10 @@ export default function CartPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-text mb-2">Votre panier est vide</h2>
-          <p className="text-sm text-text-muted mb-6">Ajoutez des articles pour commencer !</p>
+          <h2 className="text-lg font-bold text-text mb-2">{t("cart.empty")}</h2>
+          <p className="text-sm text-text-muted mb-6">{t("cart.emptyMessage")}</p>
           <Link href="/" className="inline-block bg-black text-white font-bold text-sm px-8 py-3 rounded-full hover:bg-gray-800 transition-colors">
-            DÉCOUVRIR NOS PRODUITS
+            {t("cart.continueShopping").toUpperCase()}
           </Link>
         </div>
       ) : (
@@ -306,8 +309,8 @@ export default function CartPage() {
                       </button>
                     </div>
                     <p className="text-xs text-text-muted mt-0.5">
-                      {item.selectedColor && `Couleur: ${item.selectedColor}`}
-                      {item.selectedSize && ` · ${item.product.sizes_label || "Taille"}: ${item.selectedSize}`}
+                      {item.selectedColor && `${t("cart.color")}: ${item.selectedColor}`}
+                      {item.selectedSize && ` · ${item.product.sizes_label || t("cart.size")}: ${item.selectedSize}`}
                     </p>
                     {item.product.old_price && (
                       <p className="text-xs text-text-muted line-through mt-0.5">{formatPrice(item.product.old_price)}</p>
@@ -339,60 +342,60 @@ export default function CartPage() {
                 onClick={() => setShowCheckout(true)}
                 className="w-full lg:hidden py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-colors text-base"
               >
-                PROCÉDER AU PAIEMENT
+                {t("cart.checkout").toUpperCase()}
               </button>
             ) : (
               <form onSubmit={handleSubmit} className="lg:hidden space-y-4 animate-slide-up" id="checkout-form">
-                <h2 className="text-lg font-bold text-text">Informations de Livraison</h2>
-                <p className="text-xs text-text-muted mb-4">Paiement à la livraison (COD) — Payez à la réception</p>
+                <h2 className="text-lg font-bold text-text">{t("checkout.title")}</h2>
+                <p className="text-xs text-text-muted mb-4">{t("footer.codPayment")}</p>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-text mb-1 block">Prénom *</label>
-                    <input type="text" value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.firstName ? "border-danger" : "border-border"}`} placeholder="Prénom" />
+                    <label className="text-xs font-medium text-text mb-1 block">{t("checkout.firstName")} *</label>
+                    <input type="text" value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.firstName ? "border-danger" : "border-border"}`} placeholder={t("checkout.firstName")} />
                     {errors.firstName && <p className="text-danger text-[10px] mt-0.5">{errors.firstName}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-text mb-1 block">Nom *</label>
-                    <input type="text" value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.lastName ? "border-danger" : "border-border"}`} placeholder="Nom" />
+                    <label className="text-xs font-medium text-text mb-1 block">{t("checkout.lastName")} *</label>
+                    <input type="text" value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.lastName ? "border-danger" : "border-border"}`} placeholder={t("checkout.lastName")} />
                     {errors.lastName && <p className="text-danger text-[10px] mt-0.5">{errors.lastName}</p>}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-text mb-1 block">Téléphone *</label>
+                  <label className="text-xs font-medium text-text mb-1 block">{t("checkout.phone")} *</label>
                   <input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.phone ? "border-danger" : "border-border"}`} placeholder="0550000000" />
                   {errors.phone && <p className="text-danger text-[10px] mt-0.5">{errors.phone}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-text mb-1 block">Wilaya *</label>
+                  <label className="text-xs font-medium text-text mb-1 block">{t("checkout.wilaya")} *</label>
                   <select value={formData.wilaya} onChange={(e) => updateField("wilaya", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm bg-white ${errors.wilaya ? "border-danger" : "border-border"}`}>
-                    <option value="">Sélectionnez une wilaya</option>
+                    <option value="">{t("checkout.selectWilaya")}</option>
                     {WILAYAS.map((w) => (<option key={w} value={w}>{w}</option>))}
                   </select>
                   {errors.wilaya && <p className="text-danger text-[10px] mt-0.5">{errors.wilaya}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-text mb-1 block">Commune *</label>
-                  <input type="text" value={formData.commune} onChange={(e) => updateField("commune", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.commune ? "border-danger" : "border-border"}`} placeholder="Commune" />
+                  <label className="text-xs font-medium text-text mb-1 block">{t("checkout.commune")} *</label>
+                  <input type="text" value={formData.commune} onChange={(e) => updateField("commune", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm ${errors.commune ? "border-danger" : "border-border"}`} placeholder={t("checkout.commune")} />
                   {errors.commune && <p className="text-danger text-[10px] mt-0.5">{errors.commune}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-text mb-1 block">Adresse *</label>
-                  <textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm resize-none ${errors.address ? "border-danger" : "border-border"}`} rows={2} placeholder="Adresse complète" />
+                  <label className="text-xs font-medium text-text mb-1 block">{t("checkout.address")} *</label>
+                  <textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} className={`w-full px-3 py-2.5 border rounded-lg text-sm resize-none ${errors.address ? "border-danger" : "border-border"}`} rows={2} placeholder={t("checkout.address")} />
                   {errors.address && <p className="text-danger text-[10px] mt-0.5">{errors.address}</p>}
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-text mb-1 block">Notes (optionnel)</label>
+                  <label className="text-xs font-medium text-text mb-1 block">{t("checkout.notes")}</label>
                   <textarea value={formData.notes} onChange={(e) => updateField("notes", e.target.value)} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm resize-none" rows={2} placeholder="Instructions spéciales..." />
                 </div>
 
                 <button type="submit" disabled={submitting} className={`w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-base ${submitting ? "opacity-60 cursor-wait" : ""}`} id="submit-order-mobile">
-                  {submitting ? "TRAITEMENT EN COURS..." : "VALIDER LA COMMANDE (PAIEMENT À LA LIVRAISON)"}
+                  {submitting ? t("checkout.placing").toUpperCase() : t("checkout.placeOrder").toUpperCase()}
                 </button>
               </form>
             )}
@@ -401,48 +404,48 @@ export default function CartPage() {
           {/* Desktop Order Summary */}
           <div className="hidden lg:block lg:col-span-2">
             <div className="sticky top-32 bg-white border border-border rounded-2xl p-6">
-              <h2 className="text-lg font-bold text-text mb-4">Récapitulatif</h2>
+              <h2 className="text-lg font-bold text-text mb-4">{t("cart.orderSummary")}</h2>
 
               <div className="space-y-3 mb-4 pb-4 border-b border-border">
-                <div className="flex justify-between text-sm"><span className="text-text-light">Sous-total ({count} articles)</span><span className="font-medium">{formatPrice(total)}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-text-light">Livraison</span><span className="font-medium">{formatPrice(shipping)}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-text-light">{t("cart.subtotal")} ({t("cart.items", { count: String(count) })})</span><span className="font-medium">{formatPrice(total)}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-text-light">{t("cart.shipping")}</span><span className="font-medium">{formatPrice(shipping)}</span></div>
               </div>
 
               <div className="flex justify-between text-lg font-black mb-6"><span>Total</span><span className="text-primary">{formatPrice(grandTotal)}</span></div>
 
               {/* Desktop Checkout Form */}
               <form onSubmit={handleSubmit} className="space-y-3" id="checkout-form-desktop">
-                <h3 className="text-sm font-bold text-text">Informations de Livraison</h3>
-                <p className="text-[10px] text-text-muted mb-2">Paiement à la livraison (COD)</p>
+                <h3 className="text-sm font-bold text-text">{t("checkout.title")}</h3>
+                <p className="text-[10px] text-text-muted mb-2">{t("footer.codPayment")}</p>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <input type="text" value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.firstName ? "border-danger" : "border-border"}`} placeholder="Prénom *" />
+                    <input type="text" value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.firstName ? "border-danger" : "border-border"}`} placeholder={`${t("checkout.firstName")} *`} />
                     {errors.firstName && <p className="text-danger text-[9px] mt-0.5">{errors.firstName}</p>}
                   </div>
                   <div>
-                    <input type="text" value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.lastName ? "border-danger" : "border-border"}`} placeholder="Nom *" />
+                    <input type="text" value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.lastName ? "border-danger" : "border-border"}`} placeholder={`${t("checkout.lastName")} *`} />
                     {errors.lastName && <p className="text-danger text-[9px] mt-0.5">{errors.lastName}</p>}
                   </div>
                 </div>
 
-                <input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.phone ? "border-danger" : "border-border"}`} placeholder="Téléphone * (05/06/07...)" />
+                <input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.phone ? "border-danger" : "border-border"}`} placeholder={`${t("checkout.phone")} * (05/06/07...)`} />
                 {errors.phone && <p className="text-danger text-[9px] mt-0.5">{errors.phone}</p>}
 
                 <select value={formData.wilaya} onChange={(e) => updateField("wilaya", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs bg-white ${errors.wilaya ? "border-danger" : "border-border"}`}>
-                  <option value="">Wilaya *</option>
+                  <option value="">{t("checkout.wilaya")} *</option>
                   {WILAYAS.map((w) => (<option key={w} value={w}>{w}</option>))}
                 </select>
                 {errors.wilaya && <p className="text-danger text-[9px] mt-0.5">{errors.wilaya}</p>}
 
-                <input type="text" value={formData.commune} onChange={(e) => updateField("commune", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.commune ? "border-danger" : "border-border"}`} placeholder="Commune *" />
+                <input type="text" value={formData.commune} onChange={(e) => updateField("commune", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs ${errors.commune ? "border-danger" : "border-border"}`} placeholder={`${t("checkout.commune")} *`} />
                 {errors.commune && <p className="text-danger text-[9px] mt-0.5">{errors.commune}</p>}
 
-                <textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs resize-none ${errors.address ? "border-danger" : "border-border"}`} rows={2} placeholder="Adresse complète *" />
+                <textarea value={formData.address} onChange={(e) => updateField("address", e.target.value)} className={`w-full px-3 py-2 border rounded-lg text-xs resize-none ${errors.address ? "border-danger" : "border-border"}`} rows={2} placeholder={`${t("checkout.address")} *`} />
                 {errors.address && <p className="text-danger text-[9px] mt-0.5">{errors.address}</p>}
 
                 <button type="submit" disabled={submitting} className={`w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-sm ${submitting ? "opacity-60 cursor-wait" : ""}`} id="submit-order-desktop">
-                  {submitting ? "TRAITEMENT..." : `VALIDER (${formatPrice(grandTotal)})`}
+                  {submitting ? t("checkout.placing").toUpperCase() : `${t("checkout.placeOrder").toUpperCase()} (${formatPrice(grandTotal)})`}
                 </button>
               </form>
             </div>
@@ -462,7 +465,7 @@ export default function CartPage() {
               onClick={() => setShowCheckout(true)}
               className="bg-black text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors"
             >
-              PROCÉDER AU PAIEMENT
+              {t("cart.checkout").toUpperCase()}
             </button>
           </div>
         </div>

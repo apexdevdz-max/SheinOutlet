@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/i18n/context";
 
 export function BottomNav() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const cartCount = useStore((s) => s.getCartCount());
   const [mounted, setMounted] = useState(false);
@@ -16,7 +18,7 @@ export function BottomNav() {
 
   const tabs = [
     {
-      label: "Accueil",
+      label: t("nav.home"),
       href: "/",
       icon: (active: boolean) => (
         <svg className="w-6 h-6" fill={active ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
@@ -25,7 +27,7 @@ export function BottomNav() {
       ),
     },
     {
-      label: "Catégories",
+      label: t("nav.categories"),
       href: "/categories",
       icon: (active: boolean) => (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.5} viewBox="0 0 24 24">
@@ -34,7 +36,7 @@ export function BottomNav() {
       ),
     },
     {
-      label: "Panier",
+      label: t("nav.cart"),
       href: "/cart",
       icon: (active: boolean) => (
         <svg className="w-6 h-6" fill={active ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +46,7 @@ export function BottomNav() {
       badge: cartCount,
     },
     {
-      label: "Favoris",
+      label: t("nav.favorites"),
       href: "/favorites",
       icon: (active: boolean) => (
         <svg className="w-6 h-6" fill={active ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">

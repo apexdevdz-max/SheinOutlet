@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Category } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/context";
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
@@ -29,11 +31,11 @@ export default function CategoriesPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-lg font-bold text-text">NOS CATÉGORIES</h1>
+        <h1 className="text-lg font-bold text-text">{t("nav.categories").toUpperCase()}</h1>
       </div>
 
       {/* Desktop Title */}
-      <h1 className="hidden md:block text-3xl font-black text-text mb-8">Catégories</h1>
+      <h1 className="hidden md:block text-3xl font-black text-text mb-8">{t("nav.categories")}</h1>
 
       {/* Quick links */}
       <div className="flex gap-3 mb-6 overflow-x-auto scrollbar-hide">
@@ -41,15 +43,15 @@ export default function CategoriesPage() {
           href="/?filter=new"
           className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
         >
-          <p className="text-xs font-bold text-primary-dark"> Nouveautés</p>
-          <p className="text-[10px] text-text-muted">Chaque semaine</p>
+          <p className="text-xs font-bold text-primary-dark"> {t("home.newArrivals")}</p>
+          <p className="text-[10px] text-text-muted">{t("home.everyWeek")}</p>
         </Link>
         <Link
           href="/?filter=promo"
           className="flex-shrink-0 promo-gradient rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
         >
-          <p className="text-xs font-bold text-primary-dark"> Promotions</p>
-          <p className="text-[10px] text-text-muted">Jusqu&apos;à -70%</p>
+          <p className="text-xs font-bold text-primary-dark"> {t("home.promotions")}</p>
+          <p className="text-[10px] text-text-muted">{t("home.upTo70")}</p>
         </Link>
       </div>
 
@@ -81,7 +83,7 @@ export default function CategoriesPage() {
                     {cat.name}
                   </p>
                   <p className="text-[11px] text-text-muted mt-0.5">
-                    {subcats.length > 0 ? `${subcats.length} sous-catégories` : "Voir les produits"}
+                    {subcats.length > 0 ? `${subcats.length} ${t("categories.subcategories")}` : t("categories.viewProducts")}
                   </p>
                 </div>
                 {/* Arrow */}

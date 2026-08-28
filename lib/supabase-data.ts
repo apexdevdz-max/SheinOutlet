@@ -98,6 +98,7 @@ interface GetProductsOptions {
   categorySlug?: string;
   flashSale?: boolean;
   bestSeller?: boolean;
+  search?: string;
   limit?: number;
   offset?: number;
   orderBy?: "created_at" | "price";
@@ -109,6 +110,7 @@ export async function getProducts(opts: GetProductsOptions = {}): Promise<Produc
     categorySlug,
     flashSale,
     bestSeller,
+    search,
     limit = 30,
     offset = 0,
     orderBy = "created_at",
@@ -136,6 +138,11 @@ export async function getProducts(opts: GetProductsOptions = {}): Promise<Produc
 
     if (bestSeller !== undefined) {
       query = query.eq("is_best_seller", bestSeller);
+    }
+
+    // Server-side text search (uses trgm index)
+    if (search && search.trim().length >= 2) {
+      query = query.ilike("name", `%${search.trim()}%`);
     }
 
     const { data, error } = await query;

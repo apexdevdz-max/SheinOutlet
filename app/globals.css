@@ -312,3 +312,27 @@ input:focus, select:focus, textarea:focus {
     scroll-padding-left: 16px !important;
   }
 }
+
+/* ── RTL Support ── */
+[dir="rtl"] .carousel-first-card {
+  margin-left: 0 !important;
+  margin-right: 16px !important;
+}
+[dir="rtl"] .carousel-scroll-mobile {
+  scroll-padding-left: 0 !important;
+  scroll-padding-right: 16px !important;
+}
+[dir="rtl"] .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+[dir="rtl"] .mr-1 {
+  margin-right: 0;
+  margin-left: 0.25rem;
+}
+
+/* Language selector dropdown animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

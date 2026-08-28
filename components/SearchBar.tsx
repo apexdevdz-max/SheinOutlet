@@ -21,17 +21,12 @@ export function SearchBar() {
       setIsOpen(false);
       return;
     }
-    // Search via API (server-side Supabase)
-    fetch(`/api/products?limit=200`)
+    // Server-side search — only fetches matching products (uses DB index)
+    fetch(`/api/products?search=${encodeURIComponent(value.trim())}&limit=5`)
       .then((r) => r.json())
       .then((products: Product[]) => {
         if (!Array.isArray(products)) return;
-        const q = value.toLowerCase();
-        const found = products.filter((p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q)
-        );
-        setResults(found.slice(0, 5));
+        setResults(products);
         setIsOpen(true);
       })
       .catch(() => {});
