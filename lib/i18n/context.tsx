@@ -28,7 +28,7 @@ const I18nContext = createContext<I18nContextType>({
   lang: "fr",
   dir: "ltr",
   setLang: () => {},
-  t: (key) => key,
+  t: (key) => translations.fr[key] || key,
 });
 
 interface LanguageProviderProps {

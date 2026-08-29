@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation, LANG_LABELS, type Lang } from "@/lib/i18n/context";
+import { STORE_MAPS_LINK } from "@/lib/storeLocation";
 
 export function Footer() {
   const { t, lang, setLang } = useTranslation();
@@ -24,7 +25,7 @@ export function Footer() {
     <footer className="mt-auto bg-gray-950 text-white pt-12 pb-4" id="footer">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 pb-10 border-b border-white/10">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12 pb-10 border-b border-white/10">
           {/* Col 1: À propos */}
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4">
@@ -36,7 +37,9 @@ export function Footer() {
             {/* Social Icons */}
             <div className="flex items-center gap-3 mt-5">
               <a
-                href="#"
+                href="https://www.instagram.com/shein_outlet31"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="Instagram"
               >
@@ -45,7 +48,9 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61584421506634"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="Facebook"
               >
@@ -54,7 +59,9 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="#"
+                href="https://www.tiktok.com/@sh_ein_outlet.31"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
                 aria-label="TikTok"
               >
@@ -109,22 +116,56 @@ export function Footer() {
                 </svg>
                 {t("footer.codPayment")}
               </li>
-              <li className="flex items-start gap-2 text-sm text-gray-400">
-                <svg className="w-4 h-4 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {t("footer.returnPolicy")}
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-400">
-                <svg className="w-4 h-4 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                {t("footer.authentic")}
+              <li>
+                <Link href="/faq" className="flex items-start gap-2 text-sm text-gray-400 hover:text-primary transition-colors">
+                  <svg className="w-4 h-4 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {t("footer.faq")}
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Contact */}
+          {/* Col 4: Informations Légales */}
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-wider mb-4 text-white">
+              {t("footer.legal")}
+            </h4>
+            <ul className="space-y-2.5">
+              <li>
+                <Link href="/terms" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                  {t("footer.terms")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                  {t("footer.privacy")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                  {t("footer.cookies")}
+                </Link>
+              </li>
+              <li>
+                <a
+                  href={STORE_MAPS_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-primary transition-colors"
+                >
+                  <svg className="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {t("footer.location")}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 5: Contact */}
           <div>
             <h4 className="text-sm font-bold uppercase tracking-wider mb-4 text-white">
               {t("footer.contact")}
@@ -147,13 +188,13 @@ export function Footer() {
                 <svg className="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                +213 5 50 00 00 00
+                <span dir="ltr">+213 5 50 00 00 00</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-400">
                 <svg className="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                contact@shein-outlet.dz
+                <span dir="ltr">contact@shein-outlet.dz</span>
               </li>
             </ul>
           </div>
@@ -163,9 +204,9 @@ export function Footer() {
         <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} SHEIN Outlet Algérie. {t("footer.allRights")}</p>
           <div className="flex items-center gap-4">
-            <Link href="#" className="hover:text-primary transition-colors">{t("footer.legalNotice")}</Link>
-            <Link href="#" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
-            <Link href="#" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
+            <Link href="/terms" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
+            <Link href="/privacy" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
+            <Link href="/cookies" className="hover:text-primary transition-colors">{t("footer.cookies")}</Link>
 
             {/* ── Language Selector (Gymshark-style) ── */}
             <div className="relative" ref={langRef}>

@@ -9,9 +9,11 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { CategoryCarousels } from "@/components/CategoryCarousels";
 import { MobileHeader } from "@/components/MobileHeader";
 import { SearchBar } from "@/components/SearchBar";
+import { useTranslation } from "@/lib/i18n/context";
 import type { Product, Category } from "@/lib/types";
 import { useStore } from "@/lib/store/useStore";
 import { ProductFilterSidebar } from "@/components/ProductFilterSidebar";
+import { STORE_MAPS_LINK, STORE_EMBED_URL } from "@/lib/storeLocation";
 
 /* ──── SVG icons for category bubbles ──── */
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -45,15 +47,15 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-/* ──── Nav tabs (mobile category filter) ──── */
-const NAV_TABS = [
-  { label: "Tout", cat: null, filter: null },
-  { label: "Nouveautés", cat: null, filter: "new" },
-  { label: "Femme", cat: "femme", filter: null },
-  { label: "Homme", cat: "homme", filter: null },
-  { label: "Chaussures", cat: "chaussures", filter: null },
-  { label: "Sacs", cat: "sacs-accessoires", filter: null },
-  { label: "Promos", cat: null, filter: "promo" },
+/* ──── Nav tabs keys (mobile category filter) ──── */
+const NAV_TAB_DEFS = [
+  { key: "nav.all" as const, cat: null, filter: null },
+  { key: "nav.newArrivals" as const, cat: null, filter: "new" },
+  { key: "nav.women" as const, cat: "femme", filter: null },
+  { key: "nav.men" as const, cat: "homme", filter: null },
+  { key: "nav.shoes" as const, cat: "chaussures", filter: null },
+  { key: "nav.bags" as const, cat: "sacs-accessoires", filter: null },
+  { key: "nav.promos" as const, cat: null, filter: "promo" },
 ];
 
 /* ──── Utility: slice to the largest multiple of `cols` ──── */
@@ -76,6 +78,8 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
   const isFiltered = !!(activeCat || activeFilter);
 
   const cartCount = useStore((s) => s.getCartCount());
+  const { t } = useTranslation();
+  const NAV_TABS = NAV_TAB_DEFS.map((d) => ({ label: t(d.key), cat: d.cat, filter: d.filter }));
   const productsRef = useRef<HTMLDivElement>(null);
   const catCarouselRef = useRef<HTMLDivElement>(null);
   const subcatCarouselRef = useRef<HTMLDivElement>(null);
@@ -178,7 +182,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
               if (catCarouselRef.current) catCarouselRef.current.scrollBy({ left: -(catCarouselRef.current.offsetWidth * 0.7), behavior: "smooth" });
             }}
             className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
-            aria-label="Précédent"
+            aria-label={t("ui.previous")}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -233,7 +237,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
                 {/* "Voir plus >" button (bottom-left) */}
                 <div className="absolute bottom-3 left-3">
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/90 text-white text-[10px] md:text-[11px] font-semibold group-hover:bg-primary transition-colors shadow-sm">
-                    Voir plus
+                    {t("ui.viewMore")}
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                     </svg>
@@ -251,7 +255,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
               if (catCarouselRef.current) catCarouselRef.current.scrollBy({ left: catCarouselRef.current.offsetWidth * 0.7, behavior: "smooth" });
             }}
             className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
-            aria-label="Suivant"
+            aria-label={t("ui.next")}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -277,7 +281,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
                   if (subcatCarouselRef.current) subcatCarouselRef.current.scrollBy({ left: -(subcatCarouselRef.current.offsetWidth * 0.7), behavior: "smooth" });
                 }}
                 className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
-                aria-label="Précédent"
+                aria-label={t("ui.previous")}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -323,7 +327,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
                     {/* "Voir plus >" button (bottom-left) */}
                     <div className="absolute bottom-3 left-3">
                       <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/90 text-white text-[10px] md:text-[11px] font-semibold group-hover:bg-primary transition-colors shadow-sm">
-                        Voir plus
+                        {t("ui.viewMore")}
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                         </svg>
@@ -341,7 +345,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
                   if (subcatCarouselRef.current) subcatCarouselRef.current.scrollBy({ left: subcatCarouselRef.current.offsetWidth * 0.7, behavior: "smooth" });
                 }}
                 className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 shadow-md items-center justify-center hover:bg-white hover:shadow-lg transition-all text-text-light hover:text-primary"
-                aria-label="Suivant"
+                aria-label={t("ui.next")}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -358,9 +362,9 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
         <section className="max-w-7xl mx-auto px-4 pt-4 pb-1">
           <h2 className="text-lg md:text-2xl font-black text-text">
             {activeFilter === "new"
-              ? "NOUVEAUTÉS"
+              ? t("nav.newArrivalsTitle")
               : activeFilter === "promo"
-                ? "PROMOTIONS"
+                ? t("nav.promotions")
                 : ""}
           </h2>
         </section>
@@ -421,37 +425,49 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
         </section>
       )}
 
-      {/* ─── Promo Banners (only on home) ─── */}
+      {/* ─── Physical Store Banner (only on home) ─── */}
       {!isFiltered && (
-        <section className="max-w-7xl mx-auto px-4 py-8" id="promo-banners">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div className="promo-gradient rounded-2xl p-6 flex items-center justify-between hover:shadow-lg transition-shadow cursor-pointer group">
-              <div>
-                <h3 className="text-lg font-black text-primary-dark">BON D&apos;ACHAT</h3>
-                <p className="text-sm text-text-light">Disponible maintenant !</p>
+        <section className="max-w-7xl mx-auto px-4 py-8" id="store-banner">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pink-100 via-pink-50 to-rose-100 p-6 md:p-10">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+              {/* Left: Text */}
+              <div className="flex-1 text-center md:text-start">
+                <h3 className="text-lg md:text-xl font-black text-gray-900 leading-tight">
+                  {t("store.title")}
+                </h3>
+                <p className="text-sm text-gray-600 mt-2">
+                  {t("store.subtitle")}
+                </p>
               </div>
-              <div className="text-2xl font-black text-primary/30 group-hover:text-primary/50 transition-colors">
-                SHEIN<br /><span className="italic text-sm">outlet</span>
+
+              {/* Center: Map */}
+              <div className="w-full md:w-[320px] h-[180px] md:h-[160px] rounded-xl overflow-hidden shadow-md border-2 border-white/80 shrink-0">
+                <iframe
+                  src={STORE_EMBED_URL}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen={false}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Store location"
+                />
               </div>
-            </div>
-            <div className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-2xl p-6 flex items-center justify-between hover:shadow-lg transition-shadow cursor-pointer">
-              <div>
-                <h3 className="text-lg font-black text-text">NOUVEAUTÉS</h3>
-                <p className="text-sm text-text-light">Chaque semaine</p>
-              </div>
-              <div className="w-16 h-16 rounded-full bg-pink-200/50 flex items-center justify-center">
-                <span className="text-2xl"> </span>
-              </div>
-            </div>
-            <div className="bg-gradient-to-r from-pink-100 to-rose-100 rounded-2xl p-6 flex items-center justify-between hover:shadow-lg transition-shadow cursor-pointer">
-              <div>
-                <h3 className="text-lg font-black text-text">REJOIGNEZ-NOUS</h3>
-                <p className="text-sm text-text-light">sur Instagram</p>
-              </div>
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 via-pink-500 to-orange-400 flex items-center justify-center">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
+
+              {/* Right: CTA Button */}
+              <div className="flex-1 flex justify-center md:justify-end">
+                <a
+                  href={STORE_MAPS_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-white text-xs md:text-sm font-bold uppercase tracking-wide shadow-md hover:shadow-lg transition-all"
+                >
+                  {t("store.cta")}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </a>
               </div>
             </div>
           </div>

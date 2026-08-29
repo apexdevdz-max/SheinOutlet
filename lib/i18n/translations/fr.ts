@@ -157,8 +157,19 @@ const fr: Record<string, string> = {
   "footer.allRights": "Tous droits réservés.",
   "footer.legalNotice": "Mentions légales",
   "footer.privacy": "Politique de confidentialité",
-  "footer.terms": "CGV",
+  "footer.terms": "Conditions Générales de Vente",
+  "footer.cookies": "Politique de Cookies",
+  "footer.location": "Notre localisation",
   "footer.language": "Langue",
+  "footer.legal": "Informations Légales",
+
+  // ── Product Detail ──
+  "product.similar": "Produits Similaires",
+
+  // ── Store Banner ──
+  "store.title": "RETROUVEZ NOTRE POINT DE VENTE PHYSIQUE",
+  "store.subtitle": "Visualisez l'itinéraire pour nous rendre visite !",
+  "store.cta": "OUVRIR DANS GOOGLE MAPS",
 
   // ── Contact Drawer ──
   "contact.title": "Contactez-nous",
@@ -189,8 +200,8 @@ const fr: Record<string, string> = {
   // ── Home ──
   "home.newArrivals": "Nouveautés",
   "home.seeAll": "Voir tout",
-  "home.flashSales": "⚡ VENTES FLASH",
-  "home.bestSellers": "🔥 MEILLEURES VENTES",
+  "home.flashSales": "VENTES FLASH",
+  "home.bestSellers": "MEILLEURES VENTES",
   "home.allProducts": "Tous les Produits",
   "home.noProducts": "Aucun produit disponible",
   "home.loadMore": "Charger plus de produits",
@@ -210,6 +221,84 @@ const fr: Record<string, string> = {
   "general.error": "Une erreur est survenue",
   "general.retry": "Réessayer",
   "general.da": "DA",
+
+  // ── Search ──
+  "search.placeholder": "Rechercher un produit...",
+  "search.viewAll": "Voir tous les résultats →",
+  "search.noResults": "Aucun résultat pour",
+
+  // ── UI labels ──
+  "ui.viewMore": "Voir plus",
+  "ui.viewAll": "Voir tout",
+  "ui.previous": "Précédent",
+  "ui.next": "Suivant",
+  "ui.noProductsFilter": "Aucun produit ne correspond aux filtres.",
+  "ui.noProductsCategory": "Aucun produit trouvé pour cette catégorie.",
+  "ui.backHome": "← Retour à l'accueil",
+
+  // ── Home nav tabs ──
+  "nav.all": "Tout",
+  "nav.newArrivals": "Nouveautés",
+  "nav.women": "Femme",
+  "nav.men": "Homme",
+  "nav.shoes": "Chaussures",
+  "nav.bags": "Sacs",
+  "nav.promos": "Promos",
+  "nav.promotions": "PROMOTIONS",
+  "nav.newArrivalsTitle": "NOUVEAUTÉS",
+
+  // ── Home promo banners ──
+  "promo.voucher": "BON D'ACHAT",
+  "promo.available": "Disponible maintenant !",
+  "promo.newArrivals": "NOUVEAUTÉS",
+  "promo.everyWeek": "Chaque semaine",
+  "promo.joinUs": "REJOIGNEZ-NOUS",
+  "promo.onInstagram": "sur Instagram",
+
+  // ── Footer FAQ ──
+  "footer.faq": "FAQ",
+
+  // ── Legal pages ──
+  "legal.terms.1.title": "1. Objet",
+  "legal.terms.1.text": "Les présentes Conditions Générales de Vente régissent l'ensemble des ventes effectuées sur le site SHEIN Outlet Algérie. Toute commande passée sur le site implique l'acceptation pleine et entière de ces conditions.",
+  "legal.terms.2.title": "2. Produits et prix",
+  "legal.terms.2.text": "Les produits proposés sont présentés avec leur prix en dinars algériens (DA), toutes taxes comprises. Les prix peuvent être modifiés à tout moment, sans effet sur les commandes déjà validées.",
+  "legal.terms.3.title": "3. Commande",
+  "legal.terms.3.text": "Toute commande passée sur le site fait l'objet d'une confirmation par WhatsApp ou par téléphone. SHEIN Outlet Algérie se réserve le droit d'annuler ou de refuser toute commande en cas de litige avec le client ou de rupture de stock.",
+  "legal.terms.4.title": "4. Paiement",
+  "legal.terms.4.text": "Le paiement s'effectue à la livraison (COD - Cash on Delivery), directement auprès du livreur, sur l'ensemble des 69 wilayas couvertes par nos services de livraison.",
+  "legal.terms.5.title": "5. Livraison",
+  "legal.terms.5.text": "Les délais de livraison varient selon la wilaya de destination.",
+  "legal.terms.6.title": "6. Responsabilité",
+  "legal.terms.6.text": "SHEIN Outlet Algérie ne saurait être tenu responsable des dommages résultant d'une mauvaise utilisation des produits achetés ou d'un cas de force majeure.",
+  "legal.terms.7.title": "7. Droit applicable",
+  "legal.terms.7.text": "Les présentes conditions sont soumises au droit algérien. Tout litige relève de la compétence des tribunaux algériens.",
+
+  "legal.privacy.1.title": "1. Introduction",
+  "legal.privacy.1.text": "SHEIN Outlet Algérie accorde une grande importance à la protection des données personnelles de ses utilisateurs. Cette politique explique quelles données sont collectées et comment elles sont utilisées.",
+  "legal.privacy.2.title": "2. Données collectées",
+  "legal.privacy.2.text": "Nous collectons les données que vous nous fournissez lors d'une commande ou d'un contact avec notre service client : nom, prénom, numéro de téléphone, adresse de livraison, adresse email.",
+  "legal.privacy.3.title": "3. Utilisation des données",
+  "legal.privacy.3.text": "Ces données sont utilisées pour traiter vos commandes, assurer la livraison, vous contacter en cas de besoin et améliorer nos services. Elles ne sont jamais vendues à des tiers.",
+  "legal.privacy.4.title": "4. Partage des données",
+  "legal.privacy.4.text": "Vos données peuvent être partagées avec nos partenaires de livraison uniquement dans le cadre du traitement de votre commande.",
+  "legal.privacy.5.title": "5. Sécurité des données",
+  "legal.privacy.5.text": "Nous mettons en œuvre des mesures techniques et organisationnelles raisonnables pour protéger vos données contre tout accès non autorisé.",
+  "legal.privacy.6.title": "6. Vos droits",
+  "legal.privacy.6.text": "Vous pouvez à tout moment demander l'accès, la rectification ou la suppression de vos données personnelles en nous contactant via WhatsApp, téléphone ou email.",
+  "legal.privacy.7.title": "7. Contact",
+  "legal.privacy.7.text": "Pour toute question relative à cette politique, contactez-nous à contact@shein-outlet.dz ou au +213 5 50 00 00 00.",
+
+  "legal.cookies.1.title": "1. Qu'est-ce qu'un cookie",
+  "legal.cookies.1.text": "Un cookie est un petit fichier texte déposé sur votre appareil lors de votre navigation sur notre site, permettant de mémoriser certaines informations vous concernant.",
+  "legal.cookies.2.title": "2. Cookies utilisés",
+  "legal.cookies.2.text": "Nous utilisons des cookies essentiels au fonctionnement du site (panier, connexion), des cookies de préférence (langue sélectionnée) et des cookies statistiques permettant de mesurer la fréquentation du site.",
+  "legal.cookies.3.title": "3. Finalité",
+  "legal.cookies.3.text": "Ces cookies permettent d'améliorer votre expérience de navigation, de mémoriser vos préférences et d'analyser l'utilisation du site afin de l'optimiser.",
+  "legal.cookies.4.title": "4. Gestion des cookies",
+  "legal.cookies.4.text": "Vous pouvez à tout moment désactiver les cookies via les paramètres de votre navigateur. Cette désactivation peut toutefois limiter certaines fonctionnalités du site.",
+  "legal.cookies.5.title": "5. Consentement",
+  "legal.cookies.5.text": "En poursuivant votre navigation sur le site, vous acceptez l'utilisation de cookies conformément à cette politique.",
 };
 
 export default fr;

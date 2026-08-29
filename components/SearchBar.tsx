@@ -7,10 +7,12 @@ import { formatPrice, getDiscountPercent } from "@/lib/data";
 import Link from "next/link";
 import Image from "next/image";
 import cloudinaryLoader from "@/lib/cloudinary";
+import { useTranslation } from "@/lib/i18n/context";
 import type { Product } from "@/lib/types";
 
 export function SearchBar() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -54,7 +56,7 @@ export function SearchBar() {
       <form onSubmit={handleSubmit} className="relative flex">
         <input
           type="text"
-          placeholder="Rechercher un produit..."
+          placeholder={t("search.placeholder")}
           value={query}
           onChange={handleChange}
           onFocus={() => results.length > 0 && setIsOpen(true)}
@@ -113,14 +115,14 @@ export function SearchBar() {
             className="w-full py-2.5 text-center text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
             onClick={() => { setIsOpen(false); router.push(`/search?q=${encodeURIComponent(query.trim())}`); }}
           >
-            Voir tous les résultats →
+            {t("search.viewAll")}
           </button>
         </div>
       )}
 
       {isOpen && query.trim().length >= 2 && results.length === 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-border z-50 p-4 text-center animate-fade-in">
-          <p className="text-text-muted text-xs">Aucun résultat pour &ldquo;{query}&rdquo;</p>
+          <p className="text-text-muted text-xs">{t("search.noResults")} &ldquo;{query}&rdquo;</p>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminDataProvider } from "@/components/admin/AdminDataProvider";
+import { AdminLangGuard } from "@/components/admin/AdminLangGuard";
 import { Suspense } from "react";
 
 export const metadata = {
@@ -12,13 +13,15 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Suspense fallback={null}>
-        <AdminSidebar />
-      </Suspense>
-      <main className="ml-64 min-h-screen">
-        <AdminDataProvider>{children}</AdminDataProvider>
-      </main>
-    </div>
+    <AdminLangGuard>
+      <div className="min-h-screen bg-gray-50">
+        <Suspense fallback={null}>
+          <AdminSidebar />
+        </Suspense>
+        <main className="ml-64 min-h-screen">
+          <AdminDataProvider>{children}</AdminDataProvider>
+        </main>
+      </div>
+    </AdminLangGuard>
   );
 }

@@ -156,9 +156,20 @@ const en: Record<string, string> = {
   "footer.contact": "Contact",
   "footer.allRights": "All rights reserved.",
   "footer.legalNotice": "Legal notice",
-  "footer.privacy": "Privacy policy",
-  "footer.terms": "Terms",
+  "footer.privacy": "Privacy Policy",
+  "footer.terms": "Terms & Conditions",
+  "footer.cookies": "Cookie Policy",
+  "footer.location": "Our Location",
   "footer.language": "Language",
+  "footer.legal": "Legal Information",
+
+  // ── Product Detail ──
+  "product.similar": "Similar Products",
+
+  // ── Store Banner ──
+  "store.title": "VISIT OUR PHYSICAL STORE",
+  "store.subtitle": "Get directions to come visit us!",
+  "store.cta": "OPEN IN GOOGLE MAPS",
 
   // ── Contact Drawer ──
   "contact.title": "Contact us",
@@ -189,8 +200,8 @@ const en: Record<string, string> = {
   // ── Home ──
   "home.newArrivals": "New Arrivals",
   "home.seeAll": "See all",
-  "home.flashSales": "⚡ FLASH SALES",
-  "home.bestSellers": "🔥 BEST SELLERS",
+  "home.flashSales": "FLASH SALES",
+  "home.bestSellers": "BEST SELLERS",
   "home.allProducts": "All Products",
   "home.noProducts": "No products available",
   "home.loadMore": "Load more products",
@@ -210,6 +221,84 @@ const en: Record<string, string> = {
   "general.error": "An error occurred",
   "general.retry": "Retry",
   "general.da": "DA",
+
+  // ── Search ──
+  "search.placeholder": "Search for a product...",
+  "search.viewAll": "View all results →",
+  "search.noResults": "No results for",
+
+  // ── UI labels ──
+  "ui.viewMore": "View more",
+  "ui.viewAll": "View all",
+  "ui.previous": "Previous",
+  "ui.next": "Next",
+  "ui.noProductsFilter": "No products match the selected filters.",
+  "ui.noProductsCategory": "No products found for this category.",
+  "ui.backHome": "← Back to home",
+
+  // ── Home nav tabs ──
+  "nav.all": "All",
+  "nav.newArrivals": "New Arrivals",
+  "nav.women": "Women",
+  "nav.men": "Men",
+  "nav.shoes": "Shoes",
+  "nav.bags": "Bags",
+  "nav.promos": "Deals",
+  "nav.promotions": "PROMOTIONS",
+  "nav.newArrivalsTitle": "NEW ARRIVALS",
+
+  // ── Home promo banners ──
+  "promo.voucher": "GIFT VOUCHER",
+  "promo.available": "Available now!",
+  "promo.newArrivals": "NEW ARRIVALS",
+  "promo.everyWeek": "Every week",
+  "promo.joinUs": "JOIN US",
+  "promo.onInstagram": "on Instagram",
+
+  // ── Footer FAQ ──
+  "footer.faq": "FAQ",
+
+  // ── Legal pages ──
+  "legal.terms.1.title": "1. Purpose",
+  "legal.terms.1.text": "These General Terms and Conditions of Sale govern all sales made on the SHEIN Outlet Algeria website. Any order placed on the site implies full and complete acceptance of these conditions.",
+  "legal.terms.2.title": "2. Products and Prices",
+  "legal.terms.2.text": "Products are displayed with their price in Algerian Dinars (DA), all taxes included. Prices may be changed at any time, without affecting orders already confirmed.",
+  "legal.terms.3.title": "3. Orders",
+  "legal.terms.3.text": "Every order placed on the site is confirmed via WhatsApp or phone. SHEIN Outlet Algeria reserves the right to cancel or refuse any order in case of dispute with the customer or out-of-stock items.",
+  "legal.terms.4.title": "4. Payment",
+  "legal.terms.4.text": "Payment is made upon delivery (COD - Cash on Delivery), directly to the delivery person, across all 69 wilayas covered by our delivery services.",
+  "legal.terms.5.title": "5. Delivery",
+  "legal.terms.5.text": "Delivery times vary depending on the destination wilaya.",
+  "legal.terms.6.title": "6. Liability",
+  "legal.terms.6.text": "SHEIN Outlet Algeria cannot be held responsible for damages resulting from misuse of purchased products or force majeure.",
+  "legal.terms.7.title": "7. Applicable Law",
+  "legal.terms.7.text": "These conditions are governed by Algerian law. Any dispute falls under the jurisdiction of Algerian courts.",
+
+  "legal.privacy.1.title": "1. Introduction",
+  "legal.privacy.1.text": "SHEIN Outlet Algeria places great importance on protecting the personal data of its users. This policy explains what data is collected and how it is used.",
+  "legal.privacy.2.title": "2. Data Collected",
+  "legal.privacy.2.text": "We collect data you provide when placing an order or contacting our customer service: name, surname, phone number, delivery address, email address.",
+  "legal.privacy.3.title": "3. Use of Data",
+  "legal.privacy.3.text": "This data is used to process your orders, ensure delivery, contact you when needed, and improve our services. It is never sold to third parties.",
+  "legal.privacy.4.title": "4. Data Sharing",
+  "legal.privacy.4.text": "Your data may be shared with our delivery partners solely for the purpose of processing your order.",
+  "legal.privacy.5.title": "5. Data Security",
+  "legal.privacy.5.text": "We implement reasonable technical and organizational measures to protect your data against unauthorized access.",
+  "legal.privacy.6.title": "6. Your Rights",
+  "legal.privacy.6.text": "You may at any time request access, correction, or deletion of your personal data by contacting us via WhatsApp, phone, or email.",
+  "legal.privacy.7.title": "7. Contact",
+  "legal.privacy.7.text": "For any questions regarding this policy, contact us at contact@shein-outlet.dz or at +213 5 50 00 00 00.",
+
+  "legal.cookies.1.title": "1. What is a Cookie",
+  "legal.cookies.1.text": "A cookie is a small text file stored on your device when you browse our website, allowing certain information about you to be remembered.",
+  "legal.cookies.2.title": "2. Cookies Used",
+  "legal.cookies.2.text": "We use essential cookies for site functionality (cart, login), preference cookies (selected language), and statistical cookies to measure site traffic.",
+  "legal.cookies.3.title": "3. Purpose",
+  "legal.cookies.3.text": "These cookies improve your browsing experience, remember your preferences, and analyze site usage to optimize it.",
+  "legal.cookies.4.title": "4. Managing Cookies",
+  "legal.cookies.4.text": "You may disable cookies at any time through your browser settings. However, disabling cookies may limit certain site functionalities.",
+  "legal.cookies.5.title": "5. Consent",
+  "legal.cookies.5.text": "By continuing to browse the site, you accept the use of cookies in accordance with this policy.",
 };
 
 export default en;

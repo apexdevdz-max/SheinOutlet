@@ -15,6 +15,7 @@ import { useTranslation } from "@/lib/i18n/context";
 /* ── Related Products Carousel ── */
 function RelatedProducts({ products }: { products: Product[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   if (products.length === 0) return null;
 
@@ -27,7 +28,7 @@ function RelatedProducts({ products }: { products: Product[] }) {
   return (
     <section className="mt-12 md:mt-16">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl md:text-2xl font-black text-text">Produits Apparentés</h2>
+        <h2 className="text-xl md:text-2xl font-black text-text">{t("product.similar")}</h2>
         <div className="flex gap-2">
           <button
             onClick={() => scroll("left")}

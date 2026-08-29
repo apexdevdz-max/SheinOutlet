@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
+import { useTranslation } from "@/lib/i18n/context";
 import type { Product, Category } from "@/lib/types";
 
 interface CategoryRow {
@@ -14,6 +15,7 @@ interface CategoryRow {
 
 /* ── Single Carousel Row ── */
 function CarouselRow({ row }: { row: CategoryRow }) {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const GAP = 2; // gap-[2px] = 2px
 
@@ -49,7 +51,7 @@ function CarouselRow({ row }: { row: CategoryRow }) {
             href={row.href}
             className="hidden md:inline text-sm text-text hover:text-primary transition-colors font-medium underline underline-offset-2"
           >
-            Voir tout
+            {t("ui.viewAll")}
           </Link>
         </div>
         <div className="flex items-center gap-2">
@@ -58,12 +60,12 @@ function CarouselRow({ row }: { row: CategoryRow }) {
             href={row.href}
             className="md:hidden text-xs text-text font-semibold hover:text-primary transition-colors"
           >
-            Voir tout
+            {t("ui.viewAll")}
           </Link>
           <button
             onClick={() => scroll("left")}
             className="hidden md:flex w-8 h-8 rounded-full border border-gray-300 items-center justify-center text-gray-500 hover:text-primary hover:border-primary/40 transition-all bg-white"
-            aria-label="Precedent"
+            aria-label={t("ui.previous")}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -72,7 +74,7 @@ function CarouselRow({ row }: { row: CategoryRow }) {
           <button
             onClick={() => scroll("right")}
             className="hidden md:flex w-8 h-8 rounded-full border border-gray-300 bg-gray-900 items-center justify-center text-white hover:bg-primary transition-all"
-            aria-label="Suivant"
+            aria-label={t("ui.next")}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -168,21 +170,23 @@ export function CategoryCarousels({ products: propProducts, categories: propCate
     return allProducts.filter((p) => p.category_id && allCatIds.includes(p.category_id));
   }
 
+  const { t } = useTranslation();
+
   const rows: CategoryRow[] = [
     {
-      title: "NOUVEAUTÉS",
+      title: t("home.flashSales"),
+      href: "/flash-sales",
+      products: flashProducts,
+    },
+    {
+      title: t("nav.newArrivalsTitle"),
       href: "/?filter=new",
       products: newProducts,
     },
     {
-      title: "MEILLEURES VENTES",
+      title: t("home.bestSellers"),
       href: "/best-sellers",
       products: bestSellers,
-    },
-    {
-      title: "OFFRES FLASH",
-      href: "/flash-sales",
-      products: flashProducts,
     },
     ...parentCats.map((cat) => ({
       title: cat.name.toUpperCase(),
