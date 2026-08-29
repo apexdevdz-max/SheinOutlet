@@ -94,7 +94,6 @@ const ar: Record<string, string> = {
   // ── Search ──
   "search.title": "بحث",
   "search.results": "نتائج \"{query}\"",
-  "search.noResults": "لا نتائج لـ \"{query}\"",
   "search.noResultsMessage": "جرّب كلمات أخرى.",
 
   // ── Categories ──

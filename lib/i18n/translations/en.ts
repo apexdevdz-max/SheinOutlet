@@ -94,7 +94,6 @@ const en: Record<string, string> = {
   // ── Search ──
   "search.title": "Search",
   "search.results": "Results for \"{query}\"",
-  "search.noResults": "No results for \"{query}\"",
   "search.noResultsMessage": "Try different keywords.",
 
   // ── Categories ──
