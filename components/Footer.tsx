@@ -80,11 +80,11 @@ export function Footer() {
             <ul className="space-y-2.5">
               {[
                 { label: t("footer.home"), href: "/" },
-                { label: t("footer.newArrivals"), href: "/?filter=new" },
-                { label: t("footer.women"), href: "/?cat=femme" },
-                { label: t("footer.men"), href: "/?cat=homme" },
-                { label: t("footer.shoes"), href: "/?cat=chaussures" },
-                { label: t("footer.promos"), href: "/?filter=promo" },
+                { label: t("footer.newArrivals"), href: "/nouveautes" },
+                { label: t("footer.women"), href: "/femme" },
+                { label: t("footer.men"), href: "/homme" },
+                { label: t("footer.shoes"), href: "/chaussures" },
+                { label: t("footer.promos"), href: "/promotions" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link

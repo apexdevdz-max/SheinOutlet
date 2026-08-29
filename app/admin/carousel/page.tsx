@@ -24,13 +24,17 @@ function LinkSelector({
 }) {
   // Detect current link type
   function detectType(): LinkType {
-    if (value === "/?filter=promo") return "promo";
-    if (value === "/?filter=new") return "new";
-    if (value.startsWith("/?cat=")) {
-      const slug = value.replace("/?cat=", "");
-      const cat = categories.find((c) => c.slug === slug);
-      if (cat?.parent_id) return "subcategory";
-      return "category";
+    if (value === "/promotions" || value === "/?filter=promo") return "promo";
+    if (value === "/nouveautes" || value === "/?filter=new") return "new";
+    // Clean URL format: /slug or /parent/sub
+    const parts = value.replace(/^\//, "").split("/").filter(Boolean);
+    if (parts.length >= 1) {
+      const cat = categories.find((c) => c.slug === parts[0] && !c.parent_id);
+      if (cat && parts.length === 2) {
+        const sub = categories.find((c) => c.slug === parts[1] && c.parent_id === cat.id);
+        if (sub) return "subcategory";
+      }
+      if (cat && parts.length === 1) return "category";
     }
     return "custom";
   }
@@ -40,10 +44,15 @@ function LinkSelector({
 
   function handleTypeChange(type: LinkType) {
     setLinkType(type);
-    if (type === "promo") onChange("/?filter=promo");
-    else if (type === "new") onChange("/?filter=new");
+    if (type === "promo") onChange("/promotions");
+    else if (type === "new") onChange("/nouveautes");
     else if (type === "custom") onChange("/");
     else onChange("");
+  }
+
+  /** Extract the slug from a clean URL like /homme or /homme/ensemble */
+  function getSlugFromValue() {
+    return value.replace(/^\//, "").split("/").filter(Boolean);
   }
 
   return (
@@ -74,8 +83,8 @@ function LinkSelector({
 
       {linkType === "category" && (
         <select
-          value={value.replace("/?cat=", "")}
-          onChange={(e) => onChange(`/?cat=${e.target.value}`)}
+          value={getSlugFromValue()[0] || ""}
+          onChange={(e) => onChange(`/${e.target.value}`)}
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
         >
           <option value="">Choisir une catégorie...</option>
@@ -87,8 +96,8 @@ function LinkSelector({
 
       {linkType === "subcategory" && (
         <select
-          value={value.replace("/?cat=", "")}
-          onChange={(e) => onChange(`/?cat=${e.target.value}`)}
+          value={getSlugFromValue().join("/") || ""}
+          onChange={(e) => onChange(`/${e.target.value}`)}
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
         >
           <option value="">Choisir une sous-catégorie...</option>
@@ -98,7 +107,7 @@ function LinkSelector({
             return (
               <optgroup key={parent.id} label={parent.name}>
                 {subs.map((sub) => (
-                  <option key={sub.id} value={sub.slug}>{sub.name}</option>
+                  <option key={sub.id} value={`${parent.slug}/${sub.slug}`}>{sub.name}</option>
                 ))}
               </optgroup>
             );

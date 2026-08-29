@@ -180,7 +180,7 @@ export function CategoryCarousels({ products: propProducts, categories: propCate
     },
     {
       title: t("nav.newArrivalsTitle"),
-      href: "/?filter=new",
+      href: "/nouveautes",
       products: newProducts,
     },
     {
@@ -190,7 +190,7 @@ export function CategoryCarousels({ products: propProducts, categories: propCate
     },
     ...parentCats.map((cat) => ({
       title: cat.name.toUpperCase(),
-      href: `/?cat=${cat.slug}`,
+      href: `/${cat.slug}`,
       products: getProductsByCategory(cat.slug).slice(0, 12),
     })),
   ];

@@ -68,13 +68,20 @@ function sliceToGrid<T>(items: T[], cols: number): T[] {
 interface HomeContentProps {
   initialProducts: Product[];
   initialCategories: Category[];
+  /** Pre-resolved from clean URL route (e.g. /homme) */
+  activeCat?: string | null;
+  /** Pre-resolved from clean URL route (e.g. /homme/ensemble) */
+  activeSubcat?: string | null;
+  /** Pre-resolved from clean URL route (e.g. /nouveautes) */
+  activeFilter?: string | null;
 }
 
-function HomeContentInner({ initialProducts, initialCategories }: HomeContentProps) {
+function HomeContentInner({ initialProducts, initialCategories, activeCat: propCat, activeSubcat: propSubcat, activeFilter: propFilter }: HomeContentProps) {
   const searchParams = useSearchParams();
-  const activeCat = searchParams.get("cat");
-  const activeFilter = searchParams.get("filter");
-  const activeSubcat = searchParams.get("subcat");
+  // Props from clean URL route take priority; fall back to query params for backward compat
+  const activeCat = propCat ?? searchParams.get("cat");
+  const activeFilter = propFilter ?? searchParams.get("filter");
+  const activeSubcat = propSubcat ?? searchParams.get("subcat");
   const isFiltered = !!(activeCat || activeFilter);
 
   const cartCount = useStore((s) => s.getCartCount());
@@ -151,8 +158,9 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
 
   /* ── Helper: generate tab href ── */
   function tabHref(tab: (typeof NAV_TABS)[0]) {
-    if (tab.cat) return `/?cat=${tab.cat}`;
-    if (tab.filter) return `/?filter=${tab.filter}`;
+    if (tab.cat) return `/${tab.cat}`;
+    if (tab.filter === "new") return "/nouveautes";
+    if (tab.filter === "promo") return "/promotions";
     return "/";
   }
   function isTabActive(tab: (typeof NAV_TABS)[0]) {
@@ -199,7 +207,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
             {parentCats.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/?cat=${cat.slug}`}
+                href={`/${cat.slug}`}
                 className="group relative block overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300"
               >
                 {/* Background image */}
@@ -298,7 +306,7 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
                 {activeSubcats.map((sub) => (
                   <Link
                     key={sub.id}
-                    href={`/?cat=${activeCat}&subcat=${sub.slug}`}
+                    href={`/${activeCat}/${sub.slug}`}
                     className={`group relative block overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300 ${
                       activeSubcat === sub.slug ? "ring-2 ring-primary ring-offset-2" : ""
                     }`}
@@ -480,10 +488,10 @@ function HomeContentInner({ initialProducts, initialCategories }: HomeContentPro
 }
 
 /* ── Wrap in Suspense for useSearchParams ── */
-export function HomeContent({ initialProducts, initialCategories }: HomeContentProps) {
+export function HomeContent({ initialProducts, initialCategories, activeCat, activeSubcat, activeFilter }: HomeContentProps) {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
-      <HomeContentInner initialProducts={initialProducts} initialCategories={initialCategories} />
+      <HomeContentInner initialProducts={initialProducts} initialCategories={initialCategories} activeCat={activeCat} activeSubcat={activeSubcat} activeFilter={activeFilter} />
     </Suspense>
   );
 }

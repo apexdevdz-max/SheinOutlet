@@ -40,14 +40,14 @@ export default function CategoriesPage() {
       {/* Quick links */}
       <div className="flex gap-3 mb-6 overflow-x-auto scrollbar-hide">
         <Link
-          href="/?filter=new"
+          href="/nouveautes"
           className="flex-shrink-0 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
         >
           <p className="text-xs font-bold text-primary-dark"> {t("home.newArrivals")}</p>
           <p className="text-[10px] text-text-muted">{t("home.everyWeek")}</p>
         </Link>
         <Link
-          href="/?filter=promo"
+          href="/promotions"
           className="flex-shrink-0 promo-gradient rounded-xl px-5 py-3 hover:shadow-md transition-shadow"
         >
           <p className="text-xs font-bold text-primary-dark"> {t("home.promotions")}</p>
@@ -64,7 +64,7 @@ export default function CategoriesPage() {
             <div key={cat.id} className="bg-white border border-border overflow-hidden" id={`cat-${cat.slug}`}>
               {/* Parent Category Card */}
               <Link
-                href={`/?cat=${cat.slug}`}
+                href={`/${cat.slug}`}
                 className="flex items-center gap-4 p-3 hover:bg-pink-50/30 transition-colors group"
               >
                 {/* Category Image */}
@@ -99,7 +99,7 @@ export default function CategoriesPage() {
                     {subcats.map((sub) => (
                       <Link
                         key={sub.id}
-                        href={`/?cat=${cat.slug}&subcat=${sub.slug}`}
+                        href={`/${cat.slug}/${sub.slug}`}
                         className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-border/50 hover:border-primary/30 hover:bg-pink-50/50 transition-all group"
                       >
                         {/* Subcategory thumbnail */}

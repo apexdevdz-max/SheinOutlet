@@ -13,11 +13,11 @@ export interface NavLink {
 export function buildNavLinks(headerCategories: Category[]): NavLink[] {
   return [
     { label: "ACCUEIL", href: "/", slug: null },
-    { label: "NOUVEAUTÉS", href: "/?filter=new", slug: null },
+    { label: "NOUVEAUTÉS", href: "/nouveautes", slug: null },
     { label: "MEILLEURES VENTES", href: "/best-sellers", slug: null },
     ...headerCategories.map((c) => ({
       label: c.name.toUpperCase(),
-      href: `/?cat=${c.slug}`,
+      href: `/${c.slug}`,
       slug: c.slug,
     })),
     { label: "PROMOTIONS", href: "/promotions", slug: null },
@@ -34,9 +34,9 @@ export function isNavLinkActive(
   pathname: string
 ): boolean {
   if (link.href === "/" && !link.slug) return !activeCat && !activeFilter && pathname === "/";
-  if (link.slug && activeCat === link.slug) return true;
-  if (link.label === "NOUVEAUTÉS" && activeFilter === "new") return true;
+  if (link.slug && (activeCat === link.slug || pathname === `/${link.slug}`)) return true;
+  if (link.href === "/nouveautes" && (activeFilter === "new" || pathname === "/nouveautes")) return true;
   if (link.label === "MEILLEURES VENTES" && pathname === "/best-sellers") return true;
-  if (link.label === "PROMOTIONS" && pathname === "/promotions") return true;
+  if (link.label === "PROMOTIONS" && (activeFilter === "promo" || pathname === "/promotions")) return true;
   return false;
 }

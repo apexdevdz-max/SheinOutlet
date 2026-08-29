@@ -45,7 +45,7 @@ export function MegaMenu({ categorySlug }: { categorySlug: string }) {
             {subcategories.map((sub) => (
               <Link
                 key={sub.id}
-                href={`/categories?cat=${sub.slug}`}
+                href={`/${categorySlug}/${sub.slug}`}
                 className="group flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-primary-light transition-colors"
               >
                 <div className="w-14 h-14 rounded-full bg-primary-light flex items-center justify-center group-hover:bg-primary/10 transition-colors">
@@ -64,7 +64,7 @@ export function MegaMenu({ categorySlug }: { categorySlug: string }) {
           <div className="promo-gradient rounded-xl p-4 h-full flex flex-col justify-center items-center text-center">
             <p className="text-sm font-bold text-primary-dark mb-2">{promoText}</p>
             <Link
-              href={`/categories?cat=${categorySlug}`}
+              href={`/${categorySlug}`}
               className="mt-2 inline-block bg-black text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
             >
               VOIR TOUT

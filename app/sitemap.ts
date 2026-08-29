@@ -41,10 +41,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // Category filter pages
+  // Category pages (clean URLs)
   const categories = await getParentCategories();
   const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
-    url: `${SITE_URL}/?cat=${cat.slug}`,
+    url: `${SITE_URL}/${cat.slug}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,
