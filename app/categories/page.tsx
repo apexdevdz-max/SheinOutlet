@@ -64,7 +64,7 @@ export default function CategoriesPage() {
             <div key={cat.id} className="bg-white border border-border overflow-hidden" id={`cat-${cat.slug}`}>
               {/* Parent Category Card */}
               <Link
-                href={`/${cat.slug}`}
+                href={`/categories/${cat.slug}`}
                 className="flex items-center gap-4 p-3 hover:bg-pink-50/30 transition-colors group"
               >
                 {/* Category Image */}
@@ -99,7 +99,7 @@ export default function CategoriesPage() {
                     {subcats.map((sub) => (
                       <Link
                         key={sub.id}
-                        href={`/${cat.slug}/${sub.slug}`}
+                        href={`/categories/${cat.slug}/${sub.slug}`}
                         className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-border/50 hover:border-primary/30 hover:bg-pink-50/50 transition-all group"
                       >
                         {/* Subcategory thumbnail */}

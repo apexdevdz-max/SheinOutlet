@@ -158,7 +158,7 @@ function HomeContentInner({ initialProducts, initialCategories, activeCat: propC
 
   /* ── Helper: generate tab href ── */
   function tabHref(tab: (typeof NAV_TABS)[0]) {
-    if (tab.cat) return `/${tab.cat}`;
+    if (tab.cat) return `/categories/${tab.cat}`;
     if (tab.filter === "new") return "/nouveautes";
     if (tab.filter === "promo") return "/promotions";
     return "/";
@@ -207,7 +207,7 @@ function HomeContentInner({ initialProducts, initialCategories, activeCat: propC
             {parentCats.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/${cat.slug}`}
+                href={`/categories/${cat.slug}`}
                 className="group relative block overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300"
               >
                 {/* Background image */}
@@ -306,7 +306,7 @@ function HomeContentInner({ initialProducts, initialCategories, activeCat: propC
                 {activeSubcats.map((sub) => (
                   <Link
                     key={sub.id}
-                    href={`/${activeCat}/${sub.slug}`}
+                    href={`/categories/${activeCat}/${sub.slug}`}
                     className={`group relative block overflow-hidden flex-shrink-0 w-[200px] md:w-[260px] aspect-[4/3] bg-pink-50 hover:shadow-lg transition-all duration-300 ${
                       activeSubcat === sub.slug ? "ring-2 ring-primary ring-offset-2" : ""
                     }`}

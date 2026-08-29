@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
   const filter = searchParams.get("filter");
 
   if (cat) {
-    const cleanPath = subcat ? `/${cat}/${subcat}` : `/${cat}`;
+    const cleanPath = subcat ? `/categories/${cat}/${subcat}` : `/categories/${cat}`;
     const url = request.nextUrl.clone();
     url.pathname = cleanPath;
     url.searchParams.delete("cat");

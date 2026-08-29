@@ -190,7 +190,7 @@ export function CategoryCarousels({ products: propProducts, categories: propCate
     },
     ...parentCats.map((cat) => ({
       title: cat.name.toUpperCase(),
-      href: `/${cat.slug}`,
+      href: `/categories/${cat.slug}`,
       products: getProductsByCategory(cat.slug).slice(0, 12),
     })),
   ];

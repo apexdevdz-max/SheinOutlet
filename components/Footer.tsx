@@ -81,9 +81,9 @@ export function Footer() {
               {[
                 { label: t("footer.home"), href: "/" },
                 { label: t("footer.newArrivals"), href: "/nouveautes" },
-                { label: t("footer.women"), href: "/femme" },
-                { label: t("footer.men"), href: "/homme" },
-                { label: t("footer.shoes"), href: "/chaussures" },
+                { label: t("footer.women"), href: "/categories/femme" },
+                { label: t("footer.men"), href: "/categories/homme" },
+                { label: t("footer.shoes"), href: "/categories/chaussures" },
                 { label: t("footer.promos"), href: "/promotions" },
               ].map((link) => (
                 <li key={link.href}>

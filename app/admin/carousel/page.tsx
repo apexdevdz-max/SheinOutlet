@@ -26,8 +26,9 @@ function LinkSelector({
   function detectType(): LinkType {
     if (value === "/promotions" || value === "/?filter=promo") return "promo";
     if (value === "/nouveautes" || value === "/?filter=new") return "new";
-    // Clean URL format: /slug or /parent/sub
-    const parts = value.replace(/^\//, "").split("/").filter(Boolean);
+    // Clean URL format: /categories/slug or /categories/parent/sub
+    const catPrefix = value.startsWith("/categories/") ? value.replace("/categories/", "") : "";
+    const parts = catPrefix.split("/").filter(Boolean);
     if (parts.length >= 1) {
       const cat = categories.find((c) => c.slug === parts[0] && !c.parent_id);
       if (cat && parts.length === 2) {
@@ -50,9 +51,10 @@ function LinkSelector({
     else onChange("");
   }
 
-  /** Extract the slug from a clean URL like /homme or /homme/ensemble */
+  /** Extract the slug from a clean URL like /categories/homme or /categories/homme/ensemble */
   function getSlugFromValue() {
-    return value.replace(/^\//, "").split("/").filter(Boolean);
+    const path = value.startsWith("/categories/") ? value.replace("/categories/", "") : value.replace(/^\//, "");
+    return path.split("/").filter(Boolean);
   }
 
   return (
@@ -84,7 +86,7 @@ function LinkSelector({
       {linkType === "category" && (
         <select
           value={getSlugFromValue()[0] || ""}
-          onChange={(e) => onChange(`/${e.target.value}`)}
+          onChange={(e) => onChange(`/categories/${e.target.value}`)}
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
         >
           <option value="">Choisir une catégorie...</option>
@@ -97,7 +99,7 @@ function LinkSelector({
       {linkType === "subcategory" && (
         <select
           value={getSlugFromValue().join("/") || ""}
-          onChange={(e) => onChange(`/${e.target.value}`)}
+          onChange={(e) => onChange(`/categories/${e.target.value}`)}
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/30"
         >
           <option value="">Choisir une sous-catégorie...</option>
