@@ -176,13 +176,17 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
     return () => { document.body.style.overflow = ""; };
   }, [zoomOpen]);
 
-  // Close zoom on Escape
+  // Keyboard navigation for zoom lightbox (Escape, ArrowLeft, ArrowRight)
   useEffect(() => {
     if (!zoomOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setZoomOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoomOpen(false);
+      if (e.key === "ArrowLeft") setSelectedImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+      if (e.key === "ArrowRight") setSelectedImage((prev) => (prev + 1) % galleryImages.length);
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [zoomOpen]);
+  }, [zoomOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-dismiss share toast
   useEffect(() => {
@@ -286,16 +290,16 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
               </svg>
             </button>
 
-            {/* Agrandir l'image button */}
+            {/* Zoom icon — below favorite button */}
             <button
               type="button"
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-xl transition-all"
+              className="absolute top-[3.75rem] right-4 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-all z-20"
               onClick={() => setZoomOpen(true)}
+              aria-label="Agrandir l'image"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
               </svg>
-              Agrandir l&apos;image
             </button>
           </div>
 
@@ -717,28 +721,58 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
             </>
           )}
 
-          {/* ── Zoom Lightbox Modal ── */}
+          {/* ── Fullscreen Lightbox Viewer ── */}
           {zoomOpen && galleryImages[safeIdx] && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in"
+              className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-fade-in"
               onClick={() => setZoomOpen(false)}
             >
               {/* Dark overlay */}
-              <div className="absolute inset-0 bg-black/90" />
+              <div className="absolute inset-0 bg-black/95" />
+
               {/* Close button */}
               <button
                 type="button"
                 onClick={() => setZoomOpen(false)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 aria-label="Fermer"
               >
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              {/* Full-res image */}
+
+              {/* Left arrow */}
+              {galleryImages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setSelectedImage((safeIdx - 1 + galleryImages.length) % galleryImages.length); }}
+                  className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors"
+                  aria-label="Image précédente"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Right arrow */}
+              {galleryImages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setSelectedImage((safeIdx + 1) % galleryImages.length); }}
+                  className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors"
+                  aria-label="Image suivante"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Main image */}
               <div
-                className="relative z-10 max-w-[90vw] max-h-[90vh]"
+                className="relative z-10 flex-1 flex items-center justify-center w-full px-16 py-4"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Image
@@ -747,11 +781,41 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
                   width={1200}
                   height={1600}
                   loader={cloudinaryLoader}
-                  className="max-w-full max-h-[90vh] object-contain"
+                  className="max-w-full max-h-[75vh] object-contain rounded-lg"
                   quality={90}
                   priority
                 />
               </div>
+
+              {/* Thumbnail strip */}
+              {galleryImages.length > 1 && (
+                <div
+                  className="relative z-10 flex gap-2 px-4 pb-6 pt-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {galleryImages.map((imgObj, i) => (
+                    <button
+                      key={imgObj.url}
+                      type="button"
+                      onClick={() => setSelectedImage(i)}
+                      className={`w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                        i === safeIdx
+                          ? "border-white shadow-lg scale-105"
+                          : "border-white/20 opacity-60 hover:opacity-90 hover:border-white/50"
+                      }`}
+                    >
+                      <Image
+                        src={imgObj.url}
+                        alt={`${product.name} ${i + 1}`}
+                        width={80}
+                        height={80}
+                        loader={cloudinaryLoader}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
