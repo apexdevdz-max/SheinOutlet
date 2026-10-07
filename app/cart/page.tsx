@@ -8,37 +8,7 @@ import { WILAYAS } from "@/lib/data";
 import type { OrderFormData, Order, CartItem } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n/context";
 
-function CartCountdown() {
-  const { t } = useTranslation();
-  const [time, setTime] = useState({ minutes: 14, seconds: 59 });
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const interval = setInterval(() => {
-      setTime((prev) => {
-        if (prev.minutes === 0 && prev.seconds === 0) return { minutes: 14, seconds: 59 };
-        if (prev.seconds === 0) return { minutes: prev.minutes - 1, seconds: 59 };
-        return { ...prev, seconds: prev.seconds - 1 };
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <div className="bg-primary-light border border-primary/20 rounded-xl p-3 mb-4 flex items-center gap-2">
-      <span className="text-lg"></span>
-      <p className="text-xs text-text">
-        {t("cart.validFor")}{" "}
-        <span className="font-bold text-primary">
-          {String(time.minutes).padStart(2, "0")}:{String(time.seconds).padStart(2, "0")}
-        </span>
-      </p>
-    </div>
-  );
-}
 
 export default function CartPage() {
   const { t } = useTranslation();
@@ -287,14 +257,26 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Cart Items + Checkout Form */}
           <div className="lg:col-span-3">
-            <CartCountdown />
+
 
             {/* Cart Items */}
             <div className="space-y-3 mb-6">
               {cart.map((item) => (
                 <div key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}`} className="bg-white border border-border rounded-xl p-4 flex gap-4">
-                  <div className="w-20 h-24 rounded-lg bg-primary-light flex-shrink-0 flex items-center justify-center">
-                    <span className="text-primary text-[10px] font-medium text-center px-1">{item.product.name.split(" ").slice(0, 2).join(" ")}</span>
+                  <div className="w-20 h-24 rounded-lg bg-primary-light flex-shrink-0 overflow-hidden">
+                    {item.product.images?.[0]?.url ? (
+                      <img
+                        src={item.product.images[0].url}
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
@@ -315,7 +297,11 @@ export default function CartPage() {
                     {item.product.old_price && (
                       <p className="text-xs text-text-muted line-through mt-0.5">{formatPrice(item.product.old_price)}</p>
                     )}
-                    <p className="text-sm font-bold text-primary mt-0.5">{formatPrice(item.product.price)}</p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="text-sm font-bold text-primary">
+                        {item.quantity > 1 ? `${formatPrice(item.product.price)} × ${item.quantity} = ${formatPrice(item.product.price * item.quantity)}` : formatPrice(item.product.price)}
+                      </p>
+                    </div>
                     <div className="flex items-center gap-0 mt-2 border border-border rounded-lg w-fit overflow-hidden">
                       <button
                         onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity - 1)}

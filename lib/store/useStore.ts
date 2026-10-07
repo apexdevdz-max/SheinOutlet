@@ -8,7 +8,7 @@ import type { Product, CartItem, FavoriteItem } from "@/lib/types";
 interface StoreState {
   // Cart
   cart: CartItem[];
-  addToCart: (product: Product, size: string, color: string) => void;
+  addToCart: (product: Product, size: string, color: string, quantity?: number) => void;
   removeFromCart: (productId: string, size: string, color: string) => void;
   updateQuantity: (productId: string, size: string, color: string, quantity: number) => void;
   clearCart: () => void;
@@ -36,7 +36,7 @@ export const useStore = create<StoreState>()(
       // Cart State
       cart: [],
 
-      addToCart: (product, size, color) => {
+      addToCart: (product, size, color, quantity = 1) => {
         const { cart } = get();
         const existing = cart.find(
           (item) =>
@@ -51,13 +51,13 @@ export const useStore = create<StoreState>()(
               item.product.id === product.id &&
               item.selectedSize === size &&
               item.selectedColor === color
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { ...item, quantity: item.quantity + quantity }
                 : item
             ),
           });
         } else {
           set({
-            cart: [...cart, { product, quantity: 1, selectedSize: size, selectedColor: color }],
+            cart: [...cart, { product, quantity, selectedSize: size, selectedColor: color }],
           });
         }
       },

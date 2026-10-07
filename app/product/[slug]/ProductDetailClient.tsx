@@ -227,7 +227,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
     if (product.stock <= 0) return;
     const selectedSize = selections[displayAttrs[0]?.label] || "";
     const selectedColor = selections[displayAttrs[1]?.label] || "";
-    addToCart(product, selectedSize, selectedColor);
+    addToCart(product, selectedSize, selectedColor, quantity);
     setShowPopup(true);
   };
 
@@ -558,7 +558,7 @@ export function ProductDetailClient({ product, relatedProducts = [] }: { product
                 if (product.stock <= 0) return;
                 const selectedSize = selections[displayAttrs[0]?.label] || "";
                 const selectedColor = selections[displayAttrs[1]?.label] || "";
-                addToCart(product, selectedSize, selectedColor);
+                addToCart(product, selectedSize, selectedColor, quantity);
                 router.push("/cart");
               }}
               disabled={product.stock <= 0 || !currentComboValid}
